@@ -43,3 +43,15 @@ Once the application is running:
 
 - **Backend**: Python/Flask with NumPy for optimization computations
 - **Frontend**: JavaScript with Three.js for 3D rendering
+
+## Optimization Algorithms
+
+This visualizer includes four gradient descent variants:
+
+- **Stochastic Gradient Descent (SGD)**: Updates parameters using one sample at a time, leading to noisy but fast updates. Note: SGD is simulated in this visualization to demonstrate its characteristic noisy behavior.
+
+- **Batch Gradient Descent**: Computes gradients using the entire dataset, resulting in smooth, stable trajectories but slower convergence per step.
+
+- **Momentum Gradient Descent**: Accelerates convergence by accumulating a velocity vector in directions of persistent reduction, helping navigate ravines and flat regions more effectively.
+
+- **ADAM (Adaptive Moment Estimation)**: Combines momentum with adaptive learning rates for each parameter, automatically adjusting step sizes based on gradient history for efficient and robust optimization.

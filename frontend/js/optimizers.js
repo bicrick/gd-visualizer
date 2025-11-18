@@ -19,6 +19,10 @@ let animationState = {
     speed: 1.0
 };
 
+// Segmented ball management for overlapping optimizers
+let segmentedBalls = []; // Pool of reusable segmented balls
+const OVERLAP_THRESHOLD = 0.01; // Very tight threshold for "directly on top of each other"
+
 // Track which optimizers are enabled
 let enabledOptimizers = {
     sgd: true,
@@ -248,8 +252,22 @@ function animateOptimizers() {
         ...existingTrajectories.map(name => currentTrajectories[name]?.length || 0)
     );
     
+    const currentStepInt = Math.floor(animationState.currentStep);
+    
+    // Check if we've reached the end
     if (animationState.currentStep >= maxSteps) {
         animationState.isPlaying = false;
+        animationState.currentStep = maxSteps;
+        
+        // Update UI state to paused (animation finished)
+        if (window.setAnimationState) {
+            window.setAnimationState('paused');
+        }
+        
+        // Update timeline to show we're at the end
+        if (window.updateTimelineDisplay) {
+            window.updateTimelineDisplay(maxSteps, maxSteps);
+        }
         return;
     }
     
@@ -262,6 +280,14 @@ function animateOptimizers() {
             setBallPosition(name, x, y, loss);
         }
     });
+    
+    // Check for overlapping balls and show segmented balls if needed
+    updateSegmentedBalls();
+    
+    // Update timeline display with current step
+    if (window.updateTimelineDisplay) {
+        window.updateTimelineDisplay(currentStepInt, maxSteps);
+    }
     
     // Advance step based on speed
     animationState.currentStep += animationState.speed;
@@ -288,8 +314,53 @@ function resetAnimation() {
     Object.values(optimizerBalls).forEach(ball => {
         ball.visible = false;
     });
+    
+    // Hide segmented balls
+    segmentedBalls.forEach(ball => {
+        ball.visible = false;
+    });
+    
+    // Update timeline display
+    if (window.updateTimelineDisplay && currentTrajectories) {
+        let maxLength = 0;
+        for (const optimizer in currentTrajectories) {
+            if (currentTrajectories[optimizer]) {
+                maxLength = Math.max(maxLength, currentTrajectories[optimizer].length);
+            }
+        }
+        window.updateTimelineDisplay(0, maxLength);
+    }
 }
 window.resetAnimation = resetAnimation; // Make globally accessible
+
+// Seek to specific step
+function seekToStep(step) {
+    if (!currentTrajectories) return;
+    
+    animationState.currentStep = step;
+    
+    // Update all ball positions to this step
+    for (const name in currentTrajectories) {
+        const trajectory = currentTrajectories[name];
+        const ball = optimizerBalls[name];
+        
+        if (!trajectory || !ball || !enabledOptimizers[name]) continue;
+        
+        // Show ball if trajectory has data at this step
+        if (step < trajectory.length) {
+            const [x, y, loss] = trajectory[step];
+            const pos = paramsToWorldCoords(x, y, loss);
+            ball.position.copy(pos);
+            ball.visible = true;
+        } else {
+            ball.visible = false;
+        }
+    }
+    
+    // Handle overlapping balls at this step
+    updateOverlappingBalls(step);
+}
+window.seekToStep = seekToStep; // Make globally accessible
 
 // Clear all trajectories (used when changing manifold)
 function clearTrajectories() {
@@ -303,6 +374,11 @@ function clearTrajectories() {
         ball.visible = false;
     });
     
+    // Hide segmented balls
+    segmentedBalls.forEach(ball => {
+        ball.visible = false;
+    });
+    
     // Hide and clear trajectory lines
     Object.values(trajectoryLines).forEach(line => {
         line.visible = false;
@@ -310,6 +386,16 @@ function clearTrajectories() {
             line.geometry.setFromPoints([]);
         }
     });
+    
+    // Reset timeline display
+    if (window.updateTimelineDisplay) {
+        window.updateTimelineDisplay(0, 0);
+    }
+    
+    // Reset UI state
+    if (window.setAnimationState) {
+        window.setAnimationState('stopped');
+    }
 }
 window.clearTrajectories = clearTrajectories; // Make globally accessible
 
@@ -347,6 +433,149 @@ function toggleOptimizer(name, enabled) {
     }
 }
 window.toggleOptimizer = toggleOptimizer; // Make globally accessible
+
+// Create a segmented sphere with different colors for each segment
+function createSegmentedSphere(colors) {
+    const geometry = new THREE.SphereGeometry(0.15, 32, 32);
+    const positions = geometry.attributes.position;
+    const colorsArray = [];
+    
+    const numSegments = colors.length;
+    
+    // Assign colors to vertices based on their angle around the Y-axis
+    for (let i = 0; i < positions.count; i++) {
+        const x = positions.getX(i);
+        const z = positions.getZ(i);
+        
+        // Calculate angle in radians (0 to 2*PI)
+        let angle = Math.atan2(z, x) + Math.PI; // Shift to 0-2PI range
+        
+        // Determine which segment this vertex belongs to
+        const segmentSize = (Math.PI * 2) / numSegments;
+        const segmentIndex = Math.floor(angle / segmentSize);
+        const clampedIndex = Math.min(segmentIndex, numSegments - 1);
+        
+        const color = new THREE.Color(colors[clampedIndex]);
+        colorsArray.push(color.r, color.g, color.b);
+    }
+    
+    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colorsArray, 3));
+    
+    const material = new THREE.MeshPhongMaterial({
+        vertexColors: true,
+        emissive: 0x222222,
+        emissiveIntensity: 0.2
+    });
+    
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.visible = false;
+    scene.add(mesh);
+    
+    return mesh;
+}
+
+// Get or create a segmented ball from the pool
+function getSegmentedBall(colors) {
+    // Try to find an existing ball with the same number of segments
+    for (let ball of segmentedBalls) {
+        if (!ball.visible && ball.userData.numSegments === colors.length) {
+            // Update colors
+            updateSegmentedBallColors(ball, colors);
+            return ball;
+        }
+    }
+    
+    // Create new segmented ball
+    const ball = createSegmentedSphere(colors);
+    ball.userData.numSegments = colors.length;
+    segmentedBalls.push(ball);
+    return ball;
+}
+
+// Update colors of an existing segmented ball
+function updateSegmentedBallColors(ball, colors) {
+    const geometry = ball.geometry;
+    const positions = geometry.attributes.position;
+    const colorsArray = [];
+    
+    const numSegments = colors.length;
+    
+    for (let i = 0; i < positions.count; i++) {
+        const x = positions.getX(i);
+        const z = positions.getZ(i);
+        
+        let angle = Math.atan2(z, x) + Math.PI;
+        const segmentSize = (Math.PI * 2) / numSegments;
+        const segmentIndex = Math.floor(angle / segmentSize);
+        const clampedIndex = Math.min(segmentIndex, numSegments - 1);
+        
+        const color = new THREE.Color(colors[clampedIndex]);
+        colorsArray.push(color.r, color.g, color.b);
+    }
+    
+    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colorsArray, 3));
+}
+
+// Detect overlapping balls and manage segmented ball display
+function updateSegmentedBalls() {
+    // Hide all segmented balls first
+    segmentedBalls.forEach(ball => ball.visible = false);
+    
+    // Get all visible balls with their positions
+    const visibleBalls = [];
+    Object.keys(optimizerBalls).forEach(name => {
+        const ball = optimizerBalls[name];
+        if (ball && ball.visible && enabledOptimizers[name]) {
+            visibleBalls.push({
+                name: name,
+                ball: ball,
+                position: ball.position.clone(),
+                color: OPTIMIZER_COLORS[name]
+            });
+        }
+    });
+    
+    // Find groups that are very close together
+    const processed = new Set();
+    
+    for (let i = 0; i < visibleBalls.length; i++) {
+        if (processed.has(i)) continue;
+        
+        const group = [visibleBalls[i]];
+        processed.add(i);
+        
+        // Check for balls that are directly on top of each other
+        for (let j = i + 1; j < visibleBalls.length; j++) {
+            if (processed.has(j)) continue;
+            
+            const distance = visibleBalls[i].position.distanceTo(visibleBalls[j].position);
+            if (distance < OVERLAP_THRESHOLD) {
+                group.push(visibleBalls[j]);
+                processed.add(j);
+            }
+        }
+        
+        if (group.length > 1) {
+            // Multiple balls overlapping - show segmented ball
+            // Hide individual balls
+            group.forEach(item => item.ball.visible = false);
+            
+            // Calculate centroid position
+            const centroid = new THREE.Vector3();
+            group.forEach(item => centroid.add(item.position));
+            centroid.divideScalar(group.length);
+            
+            // Get colors from group
+            const colors = group.map(item => item.color);
+            
+            // Get or create segmented ball
+            const segmentedBall = getSegmentedBall(colors);
+            segmentedBall.position.copy(centroid);
+            segmentedBall.visible = true;
+        }
+        // If only 1 ball in group, it stays visible (already is)
+    }
+}
 
 // Animation loop for optimizers
 function animateOptimizerLoop() {

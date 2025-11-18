@@ -29,15 +29,47 @@
             
             <div class="control-group">
                 <h2>Animation</h2>
-                <div class="control-item">
-                    <label for="speed">Speed:</label>
-                    <input type="range" id="speed" min="0.1" max="5" step="0.1" value="1">
-                    <span id="speed-value">1.0</span>
+                
+                <!-- Media Controls -->
+                <div class="media-controls">
+                    <button id="play-pause-btn" class="media-btn primary" title="Play">
+                        <svg class="icon play-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                        <svg class="icon pause-icon hidden" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+                        </svg>
+                    </button>
+                    <button id="stop-btn" class="media-btn secondary" title="Stop" disabled>
+                        <svg class="icon stop-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="6" y="6" width="12" height="12"/>
+                        </svg>
+                    </button>
                 </div>
-                <div class="button-group">
-                    <button id="play-btn">Play</button>
-                    <button id="pause-btn">Pause</button>
-                    <button id="reset-btn">Reset</button>
+                
+                <!-- Timeline Controls Container -->
+                <div class="timeline-container">
+                    <!-- Timeline Scrubber -->
+                    <div class="slider-group">
+                        <div class="slider-label">
+                            <span>Iteration</span>
+                            <span class="slider-value">
+                                <span id="current-step">0</span>
+                                <span class="separator">/</span>
+                                <span id="total-steps">0</span>
+                            </span>
+                        </div>
+                        <input type="range" id="timeline-scrubber" class="timeline-scrubber" min="0" max="0" value="0" disabled>
+                    </div>
+                    
+                    <!-- Speed Slider -->
+                    <div class="slider-group">
+                        <div class="slider-label">
+                            <span>Speed</span>
+                            <span id="speed-value" class="slider-value">1.0</span>
+                        </div>
+                        <input type="range" id="speed" class="timeline-scrubber" min="0.1" max="5" step="0.1" value="1">
+                    </div>
                 </div>
             </div>
             
@@ -154,6 +186,11 @@
                             <label for="momentum-momentum">Momentum:</label>
                             <input type="range" id="momentum-momentum" min="0" max="0.99" step="0.01" value="0.9">
                             <span id="momentum-momentum-value">0.9</span>
+                        </div>
+                        <div class="control-item">
+                            <label for="momentum-lr-decay">LR Decay:</label>
+                            <input type="range" id="momentum-lr-decay" min="0.95" max="1.0" step="0.001" value="0.995">
+                            <span id="momentum-lr-decay-value">0.995</span>
                         </div>
                         <div class="control-item">
                             <label>

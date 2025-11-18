@@ -104,7 +104,8 @@ def batch_gradient_descent(loss_func, initial_params, learning_rate, n_iteration
 
 def momentum_gradient_descent(loss_func, initial_params, learning_rate, momentum, 
                               n_iterations, dataset=None, seed=42, 
-                              convergence_threshold=1e-6, max_iterations=10000):
+                              convergence_threshold=1e-6, max_iterations=10000,
+                              lr_decay=0.995):
     """
     Gradient Descent with Momentum - accumulates velocity across iterations.
     
@@ -118,6 +119,8 @@ def momentum_gradient_descent(loss_func, initial_params, learning_rate, momentum
         seed: Random seed
         convergence_threshold: Stop if gradient magnitude is below this
         max_iterations: Maximum iterations for convergence mode
+        lr_decay: Learning rate decay factor applied each iteration (default 0.995)
+                  1.0 means no decay, values < 1.0 cause gradual decay
     
     Returns:
         List of (x, y, loss) tuples representing the trajectory
@@ -127,6 +130,7 @@ def momentum_gradient_descent(loss_func, initial_params, learning_rate, momentum
     params = np.array(initial_params, dtype=float)
     velocity = np.zeros_like(params)
     trajectory = []
+    current_lr = learning_rate
     
     # Use convergence mode if n_iterations is None or negative
     use_convergence = n_iterations is None or n_iterations < 0
@@ -144,11 +148,14 @@ def momentum_gradient_descent(loss_func, initial_params, learning_rate, momentum
         if use_convergence and np.linalg.norm(grad) < convergence_threshold:
             break
         
-        # Update velocity with momentum
-        velocity = momentum * velocity - learning_rate * grad
+        # Update velocity with momentum and current learning rate
+        velocity = momentum * velocity - current_lr * grad
         
         # Update parameters
         params = params + velocity
+        
+        # Decay learning rate
+        current_lr *= lr_decay
     
     return trajectory
 

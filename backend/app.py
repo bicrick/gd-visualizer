@@ -157,6 +157,7 @@ def optimize():
         
         if has_momentum:
             result['momentum'] = float(params.get('momentum', default_momentum))
+            result['lr_decay'] = float(params.get('lrDecay', 0.995))
         
         return result
     
@@ -208,7 +209,8 @@ def optimize():
             dataset=dataset,
             seed=seed,
             convergence_threshold=params['convergence_threshold'],
-            max_iterations=params['max_iterations']
+            max_iterations=params['max_iterations'],
+            lr_decay=params['lr_decay']
         )
     
     # Add manifold info to response

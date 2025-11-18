@@ -181,6 +181,11 @@ async function changeManifold(manifoldId) {
         window.clearTrajectories();
     }
     
+    // Reset starting position to origin to avoid out-of-bounds coordinates
+    if (window.resetStartPosition) {
+        window.resetStartPosition();
+    }
+    
     // Load new landscape
     await loadLandscape(manifoldId);
 }
@@ -292,14 +297,19 @@ function updateStartPointMarker(x, y) {
         if (startPointMarker.material) startPointMarker.material.dispose();
     }
     
+    // Map parameter space coordinates to world space coordinates
+    const range = currentManifoldRange;
+    const rangeMin = range[0];
+    const rangeMax = range[1];
+    const rangeSize = rangeMax - rangeMin;
+    
+    // Map from parameter space [rangeMin, rangeMax] to world space [-5, 5]
+    const worldX = ((x - rangeMin) / rangeSize - 0.5) * 10;
+    const worldZ = ((y - rangeMin) / rangeSize - 0.5) * 10;
+    
     // Get height at the start point using the same logic as in optimizers.js
     let worldY = 0;
     if (landscapeMesh && landscapeGeometry) {
-        const range = currentManifoldRange;
-        const rangeMin = range[0];
-        const rangeMax = range[1];
-        const rangeSize = rangeMax - rangeMin;
-        
         const normalizedX = (x - rangeMin) / rangeSize;
         const normalizedY = (y - rangeMin) / rangeSize;
         
@@ -332,10 +342,10 @@ function updateStartPointMarker(x, y) {
         worldY = interpolatedHeight;
     }
     
-    // Create a vertical line from the ground to the surface
+    // Create a vertical line from the ground to the surface (using world coordinates)
     const points = [
-        new THREE.Vector3(x, 0, y),  // Bottom of line (at ground level)
-        new THREE.Vector3(x, worldY + 0.5, y)  // Top of line (extends above surface)
+        new THREE.Vector3(worldX, 0, worldZ),  // Bottom of line (at ground level)
+        new THREE.Vector3(worldX, worldY + 0.5, worldZ)  // Top of line (extends above surface)
     ];
     
     const geometry = new THREE.BufferGeometry().setFromPoints(points);
@@ -395,8 +405,17 @@ function onCanvasClick(event) {
         // Convert 3D world coordinates back to 2D parameter space
         // The landscape mesh is rotated -90 degrees around X axis
         // So we need to account for that transformation
-        const paramX = point.x;
-        const paramY = point.z; // Z becomes Y due to rotation
+        const worldX = point.x;
+        const worldZ = point.z; // Z becomes Y due to rotation
+        
+        // Map from world space [-5, 5] back to parameter space [rangeMin, rangeMax]
+        const range = currentManifoldRange;
+        const rangeMin = range[0];
+        const rangeMax = range[1];
+        const rangeSize = rangeMax - rangeMin;
+        
+        const paramX = (worldX / 10 + 0.5) * rangeSize + rangeMin;
+        const paramY = (worldZ / 10 + 0.5) * rangeSize + rangeMin;
         
         // Update the UI inputs and parameters
         if (window.updateStartPosition) {

@@ -30,6 +30,16 @@ let currentParams = {
         useConvergence: true,
         maxIterations: 10000,
         convergenceThreshold: 1e-4
+    },
+    adam: {
+        learningRate: 0.01,
+        beta1: 0.9,
+        beta2: 0.999,
+        epsilon: 1e-8,
+        iterations: 100,
+        useConvergence: true,
+        maxIterations: 10000,
+        convergenceThreshold: 1e-4
     }
 };
 
@@ -139,6 +149,7 @@ function initControls() {
     initOptimizerControls('sgd', false);
     initOptimizerControls('batch', false);
     initOptimizerControls('momentum', true);
+    initOptimizerControls('adam', false, true);
     
     // Initialize expand/collapse functionality
     // Make the entire header clickable, but prevent checkbox clicks from triggering expand/collapse
@@ -179,7 +190,7 @@ function initControls() {
 }
 
 // Initialize controls for a specific optimizer
-function initOptimizerControls(optimizerName, hasMomentum) {
+function initOptimizerControls(optimizerName, hasMomentum, isAdam) {
     const prefix = optimizerName;
     
     // Toggle checkbox
@@ -213,6 +224,36 @@ function initOptimizerControls(optimizerName, hasMomentum) {
             const value = parseFloat(e.target.value);
             lrDecayValue.textContent = value.toFixed(3);
             currentParams[prefix].lrDecay = value;
+        });
+    }
+    
+    // ADAM-specific parameters
+    if (isAdam) {
+        // Beta1 slider
+        const beta1Slider = document.getElementById(`${prefix}-beta1`);
+        const beta1Value = document.getElementById(`${prefix}-beta1-value`);
+        beta1Slider.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            beta1Value.textContent = value.toFixed(3);
+            currentParams[prefix].beta1 = value;
+        });
+        
+        // Beta2 slider
+        const beta2Slider = document.getElementById(`${prefix}-beta2`);
+        const beta2Value = document.getElementById(`${prefix}-beta2-value`);
+        beta2Slider.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            beta2Value.textContent = value.toFixed(4);
+            currentParams[prefix].beta2 = value;
+        });
+        
+        // Epsilon slider
+        const epsilonSlider = document.getElementById(`${prefix}-epsilon`);
+        const epsilonValue = document.getElementById(`${prefix}-epsilon-value`);
+        epsilonSlider.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            epsilonValue.textContent = value.toExponential(0);
+            currentParams[prefix].epsilon = value;
         });
     }
     
@@ -271,7 +312,8 @@ let previousParams = JSON.parse(JSON.stringify(currentParams));
 let previousEnabledOptimizers = {
     sgd: false,  // Will be updated on first check
     batch: false,
-    momentum: false
+    momentum: false,
+    adam: false
 };
 
 function hasParamsChanged() {
@@ -285,19 +327,22 @@ function hasParamsChanged() {
     const paramsChanged = startPosChanged ||
         JSON.stringify(previousParams.sgd) !== JSON.stringify(currentParams.sgd) ||
         JSON.stringify(previousParams.batch) !== JSON.stringify(currentParams.batch) ||
-        JSON.stringify(previousParams.momentum) !== JSON.stringify(currentParams.momentum);
+        JSON.stringify(previousParams.momentum) !== JSON.stringify(currentParams.momentum) ||
+        JSON.stringify(previousParams.adam) !== JSON.stringify(currentParams.adam);
     
     // Check if enabled optimizers changed
     const currentEnabled = window.getEnabledOptimizers ? window.getEnabledOptimizers() : {
         sgd: document.getElementById('toggle-sgd')?.checked || false,
         batch: document.getElementById('toggle-batch')?.checked || false,
-        momentum: document.getElementById('toggle-momentum')?.checked || false
+        momentum: document.getElementById('toggle-momentum')?.checked || false,
+        adam: document.getElementById('toggle-adam')?.checked || false
     };
     
     const enabledOptimizersChanged = (
         previousEnabledOptimizers.sgd !== currentEnabled.sgd ||
         previousEnabledOptimizers.batch !== currentEnabled.batch ||
-        previousEnabledOptimizers.momentum !== currentEnabled.momentum
+        previousEnabledOptimizers.momentum !== currentEnabled.momentum ||
+        previousEnabledOptimizers.adam !== currentEnabled.adam
     );
     
     return paramsChanged || enabledOptimizersChanged;
@@ -314,7 +359,8 @@ async function runOptimizationFromUI() {
         const enabledOpts = window.getEnabledOptimizers ? window.getEnabledOptimizers() : {
             sgd: document.getElementById('toggle-sgd')?.checked || false,
             batch: document.getElementById('toggle-batch')?.checked || false,
-            momentum: document.getElementById('toggle-momentum')?.checked || false
+            momentum: document.getElementById('toggle-momentum')?.checked || false,
+            adam: document.getElementById('toggle-adam')?.checked || false
         };
         
         // Build parameters for each enabled optimizer
@@ -346,7 +392,8 @@ async function runOptimizationFromUI() {
             optimizer_params: {
                 sgd: currentParams.sgd,
                 batch: currentParams.batch,
-                momentum: currentParams.momentum
+                momentum: currentParams.momentum,
+                adam: currentParams.adam
             }
         };
         

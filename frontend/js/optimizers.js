@@ -27,14 +27,16 @@ const OVERLAP_THRESHOLD = 0.01; // Very tight threshold for "directly on top of 
 let enabledOptimizers = {
     sgd: true,
     batch: true,
-    momentum: true
+    momentum: true,
+    adam: true
 };
 
 // Colors for each optimizer
 const OPTIMIZER_COLORS = {
     sgd: 0xff4444,
     batch: 0x4444ff,
-    momentum: 0x44ff44
+    momentum: 0x44ff44,
+    adam: 0xff8800
 };
 
 // Create ball for an optimizer
@@ -76,19 +78,20 @@ function initOptimizers() {
 
 // Convert parameter space (x, y) to 3D world coordinates
 function paramsToWorldCoords(x, y, loss) {
-    // Map from parameter space to world space
+    // Get current manifold range dynamically
+    const range = window.getCurrentManifoldRange ? window.getCurrentManifoldRange() : [-5, 5];
+    const rangeMin = range[0];
+    const rangeMax = range[1];
+    const rangeSize = rangeMax - rangeMin;
+    
+    // Map from parameter space [rangeMin, rangeMax] to world space [-5, 5]
     // The mesh is rotated -90° on X axis, so we need to account for that
-    const worldX = x;
-    const worldZ = y; // y in param space becomes z in world space (after rotation)
+    const worldX = ((x - rangeMin) / rangeSize - 0.5) * 10;
+    const worldZ = ((y - rangeMin) / rangeSize - 0.5) * 10;
     
     // Get height from landscape mesh if available
     let worldY = 0;
     if (landscapeMesh && landscapeGeometry) {
-        // Get current manifold range dynamically
-        const range = window.getCurrentManifoldRange ? window.getCurrentManifoldRange() : [-5, 5];
-        const rangeMin = range[0];
-        const rangeMax = range[1];
-        const rangeSize = rangeMax - rangeMin;
         
         // Sample height from landscape using bilinear interpolation
         // Map parameter space using actual range to normalized [0, 1]
@@ -188,7 +191,7 @@ async function runOptimization(params) {
         const data = await response.json();
         
         // Clear trajectories for disabled optimizers
-        const allOptimizers = ['sgd', 'batch', 'momentum'];
+        const allOptimizers = ['sgd', 'batch', 'momentum', 'adam'];
         allOptimizers.forEach(name => {
             if (!data[name]) {
                 // Clear trajectory for disabled optimizer
@@ -207,7 +210,7 @@ async function runOptimization(params) {
         window.currentTrajectories = data; // Make globally accessible
         
         // Update trajectory lines only for actual optimizer names
-        const validOptimizers = ['sgd', 'batch', 'momentum'];
+        const validOptimizers = ['sgd', 'batch', 'momentum', 'adam'];
         Object.keys(data)
             .filter(name => validOptimizers.includes(name))
             .forEach(name => {
@@ -259,9 +262,9 @@ function animateOptimizers() {
         animationState.isPlaying = false;
         animationState.currentStep = maxSteps;
         
-        // Update UI state to paused (animation finished)
+        // Update UI state to stopped (animation finished)
         if (window.setAnimationState) {
-            window.setAnimationState('paused');
+            window.setAnimationState('stopped');
         }
         
         // Update timeline to show we're at the end

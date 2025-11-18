@@ -201,7 +201,7 @@ MANIFOLD_REGISTRY = {
         'function': beale,
         'name': 'Beale',
         'description': 'Deep valleys and peaks',
-        'default_range': (-4.5, 4.5),
+        'default_range': (-10, 10),
     },
     'eggholder': {
         'function': eggholder,

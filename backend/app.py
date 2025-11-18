@@ -17,7 +17,8 @@ from loss_functions import (
 from optimizers import (
     stochastic_gradient_descent,
     batch_gradient_descent,
-    momentum_gradient_descent
+    momentum_gradient_descent,
+    adam_optimizer
 )
 
 # Determine the frontend path relative to this file
@@ -121,7 +122,8 @@ def optimize():
     enabled_optimizers = data.get('enabled_optimizers', {
         'sgd': True,
         'batch': True,
-        'momentum': True
+        'momentum': True,
+        'adam': True
     })
     
     # Get per-optimizer parameters, or fall back to global parameters
@@ -136,7 +138,7 @@ def optimize():
     default_max_iterations = int(data.get('max_iterations', 10000))
     
     # Helper function to get optimizer-specific params
-    def get_optimizer_params(optimizer_name, has_momentum=False):
+    def get_optimizer_params(optimizer_name, has_momentum=False, is_adam=False):
         params = optimizer_params.get(optimizer_name, {})
         learning_rate = float(params.get('learningRate', default_learning_rate))
         n_iterations = int(params.get('iterations', default_n_iterations))
@@ -159,6 +161,11 @@ def optimize():
             result['momentum'] = float(params.get('momentum', default_momentum))
             result['lr_decay'] = float(params.get('lrDecay', 0.995))
         
+        if is_adam:
+            result['beta1'] = float(params.get('beta1', 0.9))
+            result['beta2'] = float(params.get('beta2', 0.999))
+            result['epsilon'] = float(params.get('epsilon', 1e-8))
+        
         return result
     
     # Generate dataset once for consistency
@@ -167,6 +174,11 @@ def optimize():
     
     # Get the appropriate loss function for the selected manifold
     loss_function = get_manifold_function(manifold_id)
+    
+    # Get manifold metadata to get bounds
+    manifold_meta = get_manifold_metadata(manifold_id)
+    default_range = manifold_meta['default_range']
+    bounds = default_range  # Bounds as (min, max) tuple
     
     # Result dictionary
     result = {}
@@ -182,7 +194,8 @@ def optimize():
             dataset=dataset,
             seed=seed,
             convergence_threshold=params['convergence_threshold'],
-            max_iterations=params['max_iterations']
+            max_iterations=params['max_iterations'],
+            bounds=bounds
         )
     
     if enabled_optimizers.get('batch', False):
@@ -195,7 +208,8 @@ def optimize():
             dataset=dataset,
             seed=seed,
             convergence_threshold=params['convergence_threshold'],
-            max_iterations=params['max_iterations']
+            max_iterations=params['max_iterations'],
+            bounds=bounds
         )
     
     if enabled_optimizers.get('momentum', False):
@@ -210,7 +224,25 @@ def optimize():
             seed=seed,
             convergence_threshold=params['convergence_threshold'],
             max_iterations=params['max_iterations'],
-            lr_decay=params['lr_decay']
+            lr_decay=params['lr_decay'],
+            bounds=bounds
+        )
+    
+    if enabled_optimizers.get('adam', False):
+        params = get_optimizer_params('adam', is_adam=True)
+        result['adam'] = adam_optimizer(
+            loss_function,
+            initial_params,
+            params['learning_rate'],
+            params['n_iterations'],
+            beta1=params['beta1'],
+            beta2=params['beta2'],
+            epsilon=params['epsilon'],
+            dataset=dataset,
+            seed=seed,
+            convergence_threshold=params['convergence_threshold'],
+            max_iterations=params['max_iterations'],
+            bounds=bounds
         )
     
     # Add manifold info to response

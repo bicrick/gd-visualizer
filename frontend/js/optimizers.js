@@ -25,7 +25,7 @@ const OVERLAP_THRESHOLD = 0.01; // Very tight threshold for "directly on top of 
 
 // Track which optimizers are enabled
 let enabledOptimizers = {
-    sgd: true,
+    sgd: false,
     batch: true,
     momentum: true,
     adam: true

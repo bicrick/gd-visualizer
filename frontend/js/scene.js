@@ -342,17 +342,17 @@ function updateStartPointMarker(x, y) {
         worldY = interpolatedHeight;
     }
     
-    // Create a vertical line from the ground to the surface (using world coordinates)
+    // Create a vertical line from the surface upward (using world coordinates)
     const points = [
-        new THREE.Vector3(worldX, 0, worldZ),  // Bottom of line (at ground level)
-        new THREE.Vector3(worldX, worldY + 0.5, worldZ)  // Top of line (extends above surface)
+        new THREE.Vector3(worldX, worldY, worldZ),  // Bottom of line (at surface)
+        new THREE.Vector3(worldX, worldY + 1.5, worldZ)  // Top of line (extends above surface)
     ];
     
     const geometry = new THREE.BufferGeometry().setFromPoints(points);
     const material = new THREE.LineBasicMaterial({ 
         color: 0xffaa00,  // Orange color to stand out
-        linewidth: 2,
-        opacity: 0.8,
+        linewidth: 5,
+        opacity: 0.9,
         transparent: true
     });
     

@@ -4,7 +4,8 @@
 
 (function() {
     let tooltipElement = null;
-    let currentIcon = null;
+    let currentElement = null;
+    let hoverTimeout = null;
 
     // Create tooltip element on page load
     function initTooltips() {
@@ -15,37 +16,51 @@
 
         // Add event listeners to all info icons
         document.querySelectorAll('.info-icon').forEach(icon => {
-            icon.addEventListener('mouseenter', showTooltip);
+            icon.addEventListener('mouseenter', (e) => showTooltip(e, 0));
             icon.addEventListener('mouseleave', hideTooltip);
+        });
+
+        // Add event listeners to all buttons with tooltips
+        document.querySelectorAll('button[data-tooltip]').forEach(button => {
+            button.addEventListener('mouseenter', (e) => showTooltip(e, 1000));
+            button.addEventListener('mouseleave', hideTooltip);
         });
     }
 
-    function showTooltip(event) {
-        const icon = event.currentTarget;
-        const text = icon.getAttribute('data-tooltip');
+    function showTooltip(event, delay = 0) {
+        const element = event.currentTarget;
+        const text = element.getAttribute('data-tooltip');
         
         if (!text) return;
 
-        currentIcon = icon;
-        tooltipElement.textContent = text;
-        
-        // Position the tooltip
-        positionTooltip(icon);
-        
-        // Show tooltip
-        requestAnimationFrame(() => {
-            tooltipElement.classList.add('visible');
-        });
+        // Clear any existing timeout
+        if (hoverTimeout) {
+            clearTimeout(hoverTimeout);
+        }
+
+        // Set timeout for delayed show
+        hoverTimeout = setTimeout(() => {
+            currentElement = element;
+            tooltipElement.textContent = text;
+            
+            // Position the tooltip
+            positionTooltip(element);
+            
+            // Show tooltip
+            requestAnimationFrame(() => {
+                tooltipElement.classList.add('visible');
+            });
+        }, delay);
     }
 
-    function positionTooltip(icon) {
-        const iconRect = icon.getBoundingClientRect();
+    function positionTooltip(element) {
+        const elementRect = element.getBoundingClientRect();
         const tooltipWidth = 220; // Match CSS width
         const spacing = 8;
         
-        // Calculate position (centered above the icon)
-        let left = iconRect.left + (iconRect.width / 2) - (tooltipWidth / 2);
-        let top = iconRect.top - spacing;
+        // Calculate position (centered above the element)
+        let left = elementRect.left + (elementRect.width / 2) - (tooltipWidth / 2);
+        let top = elementRect.top - spacing;
         
         // Make sure tooltip doesn't go off screen horizontally
         const margin = 10;
@@ -62,18 +77,24 @@
     }
 
     function hideTooltip() {
-        currentIcon = null;
+        // Clear any pending timeout
+        if (hoverTimeout) {
+            clearTimeout(hoverTimeout);
+            hoverTimeout = null;
+        }
+        
+        currentElement = null;
         tooltipElement.classList.remove('visible');
     }
 
     // Handle scroll - update position if tooltip is visible
     let scrollTimeout;
     window.addEventListener('scroll', () => {
-        if (currentIcon) {
+        if (currentElement) {
             clearTimeout(scrollTimeout);
             scrollTimeout = setTimeout(() => {
-                if (currentIcon) {
-                    positionTooltip(currentIcon);
+                if (currentElement) {
+                    positionTooltip(currentElement);
                 }
             }, 10);
         }

@@ -610,53 +610,133 @@ input[type="checkbox"] {
     top: 20px;
     left: 20px;
     background: rgba(42, 42, 42, 0.95);
-    padding: 15px;
     border-radius: 8px;
     border: 1px solid #3a3a3a;
     backdrop-filter: blur(10px);
-    min-width: 250px;
+    min-width: 300px;
+    max-width: 400px;
     z-index: 100;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+}
+
+.manifold-current {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s ease;
+}
+
+.manifold-current:hover {
+    background: rgba(52, 52, 52, 0.95);
+}
+
+.manifold-current.active {
+    background: rgba(52, 52, 52, 0.95);
 }
 
 .manifold-info {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 10px;
+    flex: 1;
 }
 
 .manifold-label {
-    font-size: 14px;
+    font-size: 13px;
     color: #b0b0b0;
     font-weight: 600;
 }
 
 #current-manifold-name {
-    font-size: 16px;
+    font-size: 15px;
     color: #4a9eff;
     font-weight: 600;
 }
 
-#manifold-dropdown {
-    width: 100%;
-    padding: 8px;
+.dropdown-arrow {
+    color: #808080;
+    font-size: 10px;
+    transition: transform 0.2s ease;
+    margin-left: 10px;
+}
+
+.manifold-current.active .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+.manifold-dropdown-list {
+    max-height: 400px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: rgba(26, 26, 26, 0.98);
+    border-top: 1px solid #3a3a3a;
+    opacity: 1;
+    transform: scaleY(1);
+    transform-origin: top;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.manifold-dropdown-list.hidden {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transform: scaleY(0.95);
+    pointer-events: none;
+    border-top: none;
+}
+
+/* Custom scrollbar for dropdown list */
+.manifold-dropdown-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.manifold-dropdown-list::-webkit-scrollbar-track {
     background: #1a1a1a;
-    border: 1px solid #3a3a3a;
+}
+
+.manifold-dropdown-list::-webkit-scrollbar-thumb {
+    background: #4a4a4a;
     border-radius: 4px;
-    color: #e0e0e0;
-    font-size: 14px;
+}
+
+.manifold-dropdown-list::-webkit-scrollbar-thumb:hover {
+    background: #5a5a5a;
+}
+
+.manifold-option {
+    padding: 12px 15px;
     cursor: pointer;
-    transition: border-color 0.2s;
+    transition: background 0.2s ease;
+    border-bottom: 1px solid #2a2a2a;
 }
 
-#manifold-dropdown:hover {
-    border-color: #4a9eff;
+.manifold-option:last-child {
+    border-bottom: none;
 }
 
-#manifold-dropdown:focus {
-    outline: none;
-    border-color: #4a9eff;
+.manifold-option:hover {
+    background: rgba(74, 158, 255, 0.1);
+}
+
+.manifold-option.selected {
+    background: rgba(74, 158, 255, 0.15);
+}
+
+.manifold-option-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e0e0e0;
+    margin-bottom: 4px;
+}
+
+.manifold-option-description {
+    font-size: 12px;
+    color: #9a9a9a;
+    line-height: 1.4;
 }
 
 /* Info Icon and Tooltip */
@@ -739,5 +819,53 @@ input[type="checkbox"] {
     font-weight: 500;
     display: flex;
     align-items: center;
+}
+
+/* Classifier 2D Visualization Panel */
+#classifier-panel {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 350px;
+    height: 350px;
+    background: rgba(42, 42, 42, 0.95);
+    border: 1px solid #3a3a3a;
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+#classifier-panel.hidden {
+    display: none;
+}
+
+.classifier-header {
+    padding: 12px 15px;
+    background: #2a2a2a;
+    border-bottom: 1px solid #3a3a3a;
+}
+
+.classifier-header h3 {
+    margin: 0;
+    font-size: 16px;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.classifier-header p {
+    margin: 4px 0 0 0;
+    font-size: 12px;
+    color: #b0b0b0;
+}
+
+#classifier-canvas {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    display: block;
 }
 

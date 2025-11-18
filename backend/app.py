@@ -260,6 +260,27 @@ def get_manifolds():
     return jsonify({'manifolds': manifolds})
 
 
+@app.route('/api/classifier_dataset', methods=['GET'])
+def get_classifier_dataset():
+    """
+    Get the classification dataset for visualization.
+    Returns points and labels for the neural network classifier.
+    """
+    from loss_functions import get_classifier_dataset
+    
+    X, y = get_classifier_dataset()
+    
+    # Convert to lists for JSON serialization
+    dataset = {
+        'points': X.tolist(),
+        'labels': y.tolist(),
+        'x_coords': X[:, 0].tolist(),
+        'y_coords': X[:, 1].tolist()
+    }
+    
+    return jsonify(dataset)
+
+
 @app.route('/api/health', methods=['GET'])
 def health():
     """Health check endpoint."""

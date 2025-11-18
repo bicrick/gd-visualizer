@@ -131,31 +131,82 @@ async function loadManifolds() {
 
 // Populate manifold dropdown with available manifolds
 function populateManifoldDropdown() {
-    const dropdown = document.getElementById('manifold-dropdown');
-    if (!dropdown) return;
+    const dropdownList = document.getElementById('manifold-dropdown-list');
+    const currentBtn = document.getElementById('manifold-current');
+    
+    if (!dropdownList || !currentBtn) return;
     
     // Clear existing options
-    dropdown.innerHTML = '';
+    dropdownList.innerHTML = '';
     
     // Add manifold options
     availableManifolds.forEach(manifold => {
-        const option = document.createElement('option');
-        option.value = manifold.id;
-        option.textContent = `${manifold.name} - ${manifold.description}`;
+        const option = document.createElement('div');
+        option.className = 'manifold-option';
         if (manifold.id === currentManifoldId) {
-            option.selected = true;
+            option.classList.add('selected');
         }
-        dropdown.appendChild(option);
+        option.dataset.manifoldId = manifold.id;
+        
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'manifold-option-name';
+        nameDiv.textContent = manifold.name;
+        
+        const descDiv = document.createElement('div');
+        descDiv.className = 'manifold-option-description';
+        descDiv.textContent = manifold.description;
+        
+        option.appendChild(nameDiv);
+        option.appendChild(descDiv);
+        
+        // Add click handler for option
+        option.addEventListener('click', () => {
+            const newManifoldId = manifold.id;
+            changeManifold(newManifoldId);
+            closeDropdown();
+        });
+        
+        dropdownList.appendChild(option);
     });
     
-    // Add change event listener
-    dropdown.addEventListener('change', (e) => {
-        const newManifoldId = e.target.value;
-        changeManifold(newManifoldId);
+    // Add toggle event listener to current button
+    currentBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleDropdown();
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!document.getElementById('manifold-selector').contains(e.target)) {
+            closeDropdown();
+        }
     });
     
     // Update the display with current manifold
     updateManifoldDisplay(currentManifoldId);
+}
+
+// Toggle dropdown open/closed
+function toggleDropdown() {
+    const dropdownList = document.getElementById('manifold-dropdown-list');
+    const currentBtn = document.getElementById('manifold-current');
+    
+    if (dropdownList.classList.contains('hidden')) {
+        dropdownList.classList.remove('hidden');
+        currentBtn.classList.add('active');
+    } else {
+        dropdownList.classList.add('hidden');
+        currentBtn.classList.remove('active');
+    }
+}
+
+// Close dropdown
+function closeDropdown() {
+    const dropdownList = document.getElementById('manifold-dropdown-list');
+    const currentBtn = document.getElementById('manifold-current');
+    
+    dropdownList.classList.add('hidden');
+    currentBtn.classList.remove('active');
 }
 
 // Update the manifold name display
@@ -186,8 +237,40 @@ async function changeManifold(manifoldId) {
         window.resetStartPosition();
     }
     
+    // Update selected state in dropdown options
+    const dropdownList = document.getElementById('manifold-dropdown-list');
+    if (dropdownList) {
+        const options = dropdownList.querySelectorAll('.manifold-option');
+        options.forEach(option => {
+            if (option.dataset.manifoldId === manifoldId) {
+                option.classList.add('selected');
+            } else {
+                option.classList.remove('selected');
+            }
+        });
+    }
+    
     // Load new landscape
     await loadLandscape(manifoldId);
+    
+    // Show/hide classifier panel based on manifold
+    if (manifoldId === 'neural_net_classifier') {
+        if (window.setClassifierPanelVisible) {
+            window.setClassifierPanelVisible(true);
+            // Initialize and render with start position or default
+            setTimeout(() => {
+                if (window.renderClassifierViz && window.currentParams) {
+                    const startX = window.currentParams.startX || 0;
+                    const startY = window.currentParams.startY || 0;
+                    window.renderClassifierViz(startX, startY);
+                }
+            }, 100);
+        }
+    } else {
+        if (window.setClassifierPanelVisible) {
+            window.setClassifierPanelVisible(false);
+        }
+    }
 }
 
 // Expose functions to global scope

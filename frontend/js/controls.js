@@ -65,8 +65,16 @@ function initControls() {
     
     // Random start button
     document.getElementById('random-start').addEventListener('click', () => {
-        const x = (Math.random() - 0.5) * 8; // Random between -4 and 4
-        const y = (Math.random() - 0.5) * 8;
+        // Get current manifold range
+        const range = window.getCurrentManifoldRange ? window.getCurrentManifoldRange() : [-5, 5];
+        const rangeMin = range[0];
+        const rangeMax = range[1];
+        const rangeSize = rangeMax - rangeMin;
+        
+        // Random within manifold range
+        const x = rangeMin + Math.random() * rangeSize;
+        const y = rangeMin + Math.random() * rangeSize;
+        
         startXInput.value = x.toFixed(1);
         startYInput.value = y.toFixed(1);
         currentParams.startX = x;
@@ -74,6 +82,12 @@ function initControls() {
         // Update visual marker
         if (window.updateStartPointMarker) {
             window.updateStartPointMarker(x, y);
+        }
+        // Update classifier viz if active
+        if (window.getCurrentManifoldId && window.getCurrentManifoldId() === 'neural_net_classifier') {
+            if (window.renderClassifierViz) {
+                window.renderClassifierViz(x, y);
+            }
         }
     });
     
@@ -424,6 +438,13 @@ function updateStartPosition(x, y) {
     // Update visual marker on the graph
     if (window.updateStartPointMarker) {
         window.updateStartPointMarker(x, y);
+    }
+    
+    // Update classifier viz if active and not animating
+    if (window.getCurrentManifoldId && window.getCurrentManifoldId() === 'neural_net_classifier') {
+        if (window.renderClassifierViz && animationUIState === 'stopped') {
+            window.renderClassifierViz(x, y);
+        }
     }
 }
 

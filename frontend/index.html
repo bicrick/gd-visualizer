@@ -344,13 +344,25 @@
             <canvas id="canvas"></canvas>
             <div id="loading" class="hidden">Loading landscape...</div>
             <div id="manifold-selector">
-                <div class="manifold-info">
-                    <div class="manifold-label">Manifold:</div>
-                    <div id="current-manifold-name">Loading...</div>
+                <div class="manifold-current" id="manifold-current">
+                    <div class="manifold-info">
+                        <div class="manifold-label">Manifold:</div>
+                        <div id="current-manifold-name">Loading...</div>
+                    </div>
+                    <div class="dropdown-arrow">▼</div>
                 </div>
-                <select id="manifold-dropdown">
-                    <option value="">Loading manifolds...</option>
-                </select>
+                <div id="manifold-dropdown-list" class="manifold-dropdown-list hidden">
+                    <!-- Options will be populated dynamically -->
+                </div>
+            </div>
+            
+            <!-- 2D Classifier Visualization Panel -->
+            <div id="classifier-panel" class="hidden">
+                <div class="classifier-header">
+                    <h3>Two-Circle Clustering</h3>
+                    <p>Two clusters - which one will it find?</p>
+                </div>
+                <canvas id="classifier-canvas"></canvas>
             </div>
         </div>
     </div>
@@ -359,6 +371,7 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="js/scene.js"></script>
     <script src="js/optimizers.js"></script>
+    <script src="js/classifier_viz.js"></script>
     <script src="js/controls.js"></script>
     <script src="js/tooltips.js"></script>
 </body>

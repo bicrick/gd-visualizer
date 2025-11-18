@@ -17,7 +17,7 @@ def rastrigin(x, y, A=10):
     """
     Rastrigin function - highly multimodal with many local minima
     """
-    return A * 2 + (x**2 - A * np.cos(2 * np.pi * x)) + (y**2 - A * np.cos(2 * np.pi * y))
+    return A * 2 + (x**2 - A * np.cos(1.5 * np.pi * x)) + (y**2 - A * np.cos(1.5 * np.pi * y))
 
 
 def custom_multimodal(x, y):
@@ -60,50 +60,8 @@ def ackley(x, y):
     return term1 + term2 + a + np.e
 
 
-def rosenbrock(x, y):
-    """
-    Rosenbrock function - the famous 'banana valley' function.
-    Global minimum at (1, 1) with value 0.
-    Good for showing how optimizers get stuck in narrow valleys.
-    """
-    return (1 - x)**2 + 100 * (y - x**2)**2
 
 
-def beale(x, y):
-    """
-    Beale function - has deep valleys and peaks.
-    Global minimum at (3, 0.5) with value 0.
-    """
-    term1 = (1.5 - x + x*y)**2
-    term2 = (2.25 - x + x*y**2)**2
-    term3 = (2.625 - x + x*y**3)**2
-    
-    return term1 + term2 + term3
-
-
-def eggholder(x, y):
-    """
-    Eggholder function - very complex landscape with many local minima.
-    Global minimum at (512, 404.2319) with value -959.6407.
-    Scaled down for better visualization in [-5, 5] range.
-    """
-    # Scale inputs to explore the interesting region
-    x_scaled = x * 100
-    y_scaled = y * 100
-    
-    term1 = -(y_scaled + 47) * np.sin(np.sqrt(abs(x_scaled/2 + (y_scaled + 47))))
-    term2 = -x_scaled * np.sin(np.sqrt(abs(x_scaled - (y_scaled + 47))))
-    
-    # Scale output to be comparable to other functions
-    return (term1 + term2) / 100
-
-
-def three_hump_camel(x, y):
-    """
-    Three-Hump Camel function - has 3 local minima.
-    Global minimum at (0, 0) with value 0.
-    """
-    return 2*x**2 - 1.05*x**4 + (x**6)/6 + x*y + y**2
 
 
 def six_hump_camel(x, y):
@@ -115,7 +73,9 @@ def six_hump_camel(x, y):
     term2 = x*y
     term3 = (-4 + 4*y**2) * y**2
     
-    return term1 + term2 + term3
+    # Scale up dramatically for visualization
+    # Add offset to ensure positive values and scale up aggressively
+    return (term1 + term2 + term3 + 2.0) * 15.0
 
 
 def compute_gradient(func, x, y, h=1e-5):
@@ -131,6 +91,148 @@ def compute_gradient(func, x, y, h=1e-5):
     grad_y = (fy_plus - fy_minus) / (2 * h)
     
     return np.array([grad_x, grad_y])
+
+
+# Circle Classifier Functions
+def generate_circle_dataset(n_samples=200, seed=42):
+    """
+    Generate TWO separate circular clusters for binary classification.
+    This creates a non-convex optimization problem with two local minima.
+    
+    Class 0 (green): Points in TWO circular clusters
+        - Cluster A: centered at (-1.5, 0), radius ~0.6
+        - Cluster B: centered at (1.5, 0), radius ~0.6
+    Class 1 (orange): Points scattered uniformly throughout the space
+    
+    Returns data points and labels.
+    """
+    np.random.seed(seed)
+    
+    # Allocate samples: 25% cluster A, 25% cluster B, 50% scattered  
+    # More green points in each cluster to make them more attractive
+    n_cluster_a = int(n_samples * 0.25)
+    n_cluster_b = int(n_samples * 0.25)
+    n_scattered = n_samples - n_cluster_a - n_cluster_b
+    
+    # Generate Cluster A (left circle) - class 0  
+    # Far apart so circle can't capture both
+    cluster_a_center = (-1.8, 0.8)
+    cluster_a_radius = 0.4
+    cluster_a_noise = 0.08
+    angles_a = np.random.uniform(0, 2 * np.pi, n_cluster_a)
+    radii_a = np.random.normal(cluster_a_radius, cluster_a_noise, n_cluster_a)
+    cluster_a_x = cluster_a_center[0] + radii_a * np.cos(angles_a)
+    cluster_a_y = cluster_a_center[1] + radii_a * np.sin(angles_a)
+    
+    # Generate Cluster B (right circle) - class 0
+    # Offset vertically and make slightly larger for asymmetry
+    cluster_b_center = (1.8, -0.8)
+    cluster_b_radius = 0.45  # Slightly larger = slightly better minimum
+    cluster_b_noise = 0.08
+    angles_b = np.random.uniform(0, 2 * np.pi, n_cluster_b)
+    radii_b = np.random.normal(cluster_b_radius, cluster_b_noise, n_cluster_b)
+    cluster_b_x = cluster_b_center[0] + radii_b * np.cos(angles_b)
+    cluster_b_y = cluster_b_center[1] + radii_b * np.sin(angles_b)
+    
+    # Generate scattered points (class 1 - orange)
+    # Make them denser in a more focused region to penalize middle positions
+    scatter_range_x = 2.8
+    scatter_range_y = 1.8  # Narrower vertically
+    scatter_x = np.random.uniform(-scatter_range_x, scatter_range_x, n_scattered)
+    scatter_y = np.random.uniform(-scatter_range_y, scatter_range_y, n_scattered)
+    
+    # Combine all points
+    X = np.vstack([
+        np.column_stack([cluster_a_x, cluster_a_y]),
+        np.column_stack([cluster_b_x, cluster_b_y]),
+        np.column_stack([scatter_x, scatter_y])
+    ])
+    
+    # Labels: 0 for both clusters, 1 for scattered
+    y = np.hstack([
+        np.zeros(n_cluster_a),
+        np.zeros(n_cluster_b),
+        np.ones(n_scattered)
+    ])
+    
+    return X, y
+
+
+# Global dataset for neural network classifier (cached)
+_CLASSIFIER_DATASET = None
+
+def get_classifier_dataset():
+    """Get or create the classification dataset."""
+    global _CLASSIFIER_DATASET
+    if _CLASSIFIER_DATASET is None:
+        _CLASSIFIER_DATASET = generate_circle_dataset(n_samples=200, seed=42)
+    return _CLASSIFIER_DATASET
+
+
+def sigmoid(x):
+    """Sigmoid activation function with numerical stability."""
+    return np.where(
+        x >= 0,
+        1 / (1 + np.exp(-x)),
+        np.exp(x) / (1 + np.exp(x))
+    )
+
+
+def neural_net_classifier_loss(center_x, center_y):
+    """
+    Circle-based binary classifier with 2 learnable parameters.
+    
+    The classifier is a circle centered at (center_x, center_y) with fixed radius.
+    Points inside the circle are classified as class 0 (green - the noisy circle).
+    Points outside the circle are classified as class 1 (orange - scattered points).
+    
+    Parameters to optimize:
+        center_x: X-coordinate of the circle center
+        center_y: Y-coordinate of the circle center
+    
+    Loss: Binary cross-entropy based on distance from circle center
+    """
+    X, y = get_classifier_dataset()
+    
+    # Fixed classifier radius (smaller so it can only capture one cluster at a time)
+    classifier_radius = 1.2
+    
+    # Compute distance from each point to the circle center
+    distances = np.sqrt((X[:, 0] - center_x)**2 + (X[:, 1] - center_y)**2)
+    
+    # Classification: smooth sigmoid based on distance relative to radius
+    # Negative distance_from_boundary means inside (class 0)
+    # Positive distance_from_boundary means outside (class 1)
+    steepness = 2.0
+    distance_from_boundary = (distances - classifier_radius) * steepness
+    
+    # Sigmoid: inside circle → 0, outside → 1
+    predictions = sigmoid(distance_from_boundary)
+    
+    # Binary cross-entropy loss with clipping for numerical stability
+    epsilon = 1e-7
+    predictions = np.clip(predictions, epsilon, 1 - epsilon)
+    
+    loss = -np.mean(
+        y * np.log(predictions) + (1 - y) * np.log(1 - predictions)
+    )
+    
+    # Add barrier penalty: positions near the middle (saddle region) should have higher loss
+    # This creates two distinct basins of attraction
+    dist_from_origin = np.sqrt(center_x**2 + center_y**2)
+    # Penalty is highest at origin, decreases as you move toward clusters
+    barrier_penalty = 1.5 * np.exp(-dist_from_origin)  # Exponential barrier at center
+    
+    # Small regularization to prevent going too far out
+    edge_regularization = 0.005 * (center_x**2 + center_y**2)
+    
+    # Scale to create more dramatic landscape
+    # Add small offset to prevent loss from reaching exactly 0
+    baseline = 0.4
+    scaled_loss = (loss + barrier_penalty + edge_regularization - baseline) * 5.0
+    
+    # Ensure always slightly positive to avoid convergence issues
+    return max(0.05, scaled_loss)
 
 
 def generate_landscape_mesh(func, x_range=(-5, 5), y_range=(-5, 5), resolution=100):
@@ -191,35 +293,17 @@ MANIFOLD_REGISTRY = {
         'description': 'Corrugated surface with deep central minimum',
         'default_range': (-5, 5),
     },
-    'rosenbrock': {
-        'function': rosenbrock,
-        'name': 'Rosenbrock',
-        'description': 'Banana valley - narrow curved minimum',
-        'default_range': (-2, 2),
-    },
-    'beale': {
-        'function': beale,
-        'name': 'Beale',
-        'description': 'Deep valleys and peaks',
-        'default_range': (-10, 10),
-    },
-    'eggholder': {
-        'function': eggholder,
-        'name': 'Eggholder',
-        'description': 'Very complex organic landscape',
-        'default_range': (-5, 5),
-    },
-    'three_hump_camel': {
-        'function': three_hump_camel,
-        'name': 'Three-Hump Camel',
-        'description': '3 humps creating local minima',
-        'default_range': (-2, 2),
-    },
     'six_hump_camel': {
         'function': six_hump_camel,
         'name': 'Six-Hump Camel',
         'description': '6 local minima',
         'default_range': (-2, 2),
+    },
+    'neural_net_classifier': {
+        'function': neural_net_classifier_loss,
+        'name': 'Two-Circle Clustering',
+        'description': 'Find best circle position - demonstrates local minima problem!',
+        'default_range': (-3, 3),
     },
 }
 

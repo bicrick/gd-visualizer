@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gradient Descent Visualizer</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="container">
+        <div id="sidebar">
+            <h1>Gradient Descent Visualizer</h1>
+            
+            <div class="control-group">
+                <h2>Starting Position</h2>
+                <div class="control-item">
+                    <label for="start-x">X:</label>
+                    <input type="number" id="start-x" min="-5" max="5" step="0.1" value="3">
+                </div>
+                <div class="control-item">
+                    <label for="start-y">Y:</label>
+                    <input type="number" id="start-y" min="-5" max="5" step="0.1" value="3">
+                </div>
+                <div class="button-group">
+                    <button id="random-start">Random Start</button>
+                    <button id="pick-point-btn">Pick Point</button>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <h2>Animation</h2>
+                <div class="control-item">
+                    <label for="speed">Speed:</label>
+                    <input type="range" id="speed" min="0.1" max="5" step="0.1" value="1">
+                    <span id="speed-value">1.0</span>
+                </div>
+                <div class="button-group">
+                    <button id="play-btn">Play</button>
+                    <button id="pause-btn">Pause</button>
+                    <button id="reset-btn">Reset</button>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <h2>Display Options</h2>
+                <div class="control-item">
+                    <label>
+                        <input type="checkbox" id="show-trails" checked>
+                        Show Trajectory Trails
+                    </label>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <h2>Optimizers</h2>
+                
+                <!-- SGD Optimizer -->
+                <div class="optimizer-section">
+                    <div class="optimizer-header">
+                        <label class="optimizer-toggle-label">
+                            <input type="checkbox" id="toggle-sgd" class="optimizer-toggle" checked>
+                            <span class="color-indicator" style="background-color: #ff4444;"></span>
+                            <span class="optimizer-name">SGD (Stochastic)</span>
+                        </label>
+                        <button class="expand-btn collapsed" data-target="sgd-params">▶</button>
+                    </div>
+                    <div class="optimizer-params collapsed" id="sgd-params">
+                        <div class="control-item">
+                            <label for="sgd-learning-rate">Learning Rate:</label>
+                            <input type="range" id="sgd-learning-rate" min="0.001" max="0.1" step="0.001" value="0.01">
+                            <span id="sgd-learning-rate-value">0.01</span>
+                        </div>
+                        <div class="control-item">
+                            <label>
+                                <input type="checkbox" id="sgd-use-convergence" checked>
+                                Run Until Convergence
+                            </label>
+                        </div>
+                        <div class="control-item hidden" id="sgd-iterations-control">
+                            <label for="sgd-iterations">Iterations:</label>
+                            <input type="range" id="sgd-iterations" min="50" max="500" step="10" value="100">
+                            <span id="sgd-iterations-value">100</span>
+                        </div>
+                        <div class="control-item" id="sgd-max-iterations-control">
+                            <label for="sgd-max-iterations">Max Iterations:</label>
+                            <input type="range" id="sgd-max-iterations" min="500" max="20000" step="500" value="10000">
+                            <span id="sgd-max-iterations-value">10000</span>
+                        </div>
+                        <div class="control-item" id="sgd-convergence-threshold-control">
+                            <label for="sgd-convergence-threshold">Convergence Threshold:</label>
+                            <input type="range" id="sgd-convergence-threshold" min="0.000001" max="0.01" step="0.000001" value="0.0001">
+                            <span id="sgd-convergence-threshold-value">1e-4</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Batch GD Optimizer -->
+                <div class="optimizer-section">
+                    <div class="optimizer-header">
+                        <label class="optimizer-toggle-label">
+                            <input type="checkbox" id="toggle-batch" class="optimizer-toggle" checked>
+                            <span class="color-indicator" style="background-color: #4444ff;"></span>
+                            <span class="optimizer-name">Batch GD</span>
+                        </label>
+                        <button class="expand-btn collapsed" data-target="batch-params">▶</button>
+                    </div>
+                    <div class="optimizer-params collapsed" id="batch-params">
+                        <div class="control-item">
+                            <label for="batch-learning-rate">Learning Rate:</label>
+                            <input type="range" id="batch-learning-rate" min="0.001" max="0.1" step="0.001" value="0.01">
+                            <span id="batch-learning-rate-value">0.01</span>
+                        </div>
+                        <div class="control-item">
+                            <label>
+                                <input type="checkbox" id="batch-use-convergence" checked>
+                                Run Until Convergence
+                            </label>
+                        </div>
+                        <div class="control-item hidden" id="batch-iterations-control">
+                            <label for="batch-iterations">Iterations:</label>
+                            <input type="range" id="batch-iterations" min="50" max="500" step="10" value="100">
+                            <span id="batch-iterations-value">100</span>
+                        </div>
+                        <div class="control-item" id="batch-max-iterations-control">
+                            <label for="batch-max-iterations">Max Iterations:</label>
+                            <input type="range" id="batch-max-iterations" min="500" max="20000" step="500" value="10000">
+                            <span id="batch-max-iterations-value">10000</span>
+                        </div>
+                        <div class="control-item" id="batch-convergence-threshold-control">
+                            <label for="batch-convergence-threshold">Convergence Threshold:</label>
+                            <input type="range" id="batch-convergence-threshold" min="0.000001" max="0.01" step="0.000001" value="0.0001">
+                            <span id="batch-convergence-threshold-value">1e-4</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Momentum GD Optimizer -->
+                <div class="optimizer-section">
+                    <div class="optimizer-header">
+                        <label class="optimizer-toggle-label">
+                            <input type="checkbox" id="toggle-momentum" class="optimizer-toggle" checked>
+                            <span class="color-indicator" style="background-color: #44ff44;"></span>
+                            <span class="optimizer-name">Momentum GD</span>
+                        </label>
+                        <button class="expand-btn collapsed" data-target="momentum-params">▶</button>
+                    </div>
+                    <div class="optimizer-params collapsed" id="momentum-params">
+                        <div class="control-item">
+                            <label for="momentum-learning-rate">Learning Rate:</label>
+                            <input type="range" id="momentum-learning-rate" min="0.001" max="0.1" step="0.001" value="0.01">
+                            <span id="momentum-learning-rate-value">0.01</span>
+                        </div>
+                        <div class="control-item">
+                            <label for="momentum-momentum">Momentum:</label>
+                            <input type="range" id="momentum-momentum" min="0" max="0.99" step="0.01" value="0.9">
+                            <span id="momentum-momentum-value">0.9</span>
+                        </div>
+                        <div class="control-item">
+                            <label>
+                                <input type="checkbox" id="momentum-use-convergence" checked>
+                                Run Until Convergence
+                            </label>
+                        </div>
+                        <div class="control-item hidden" id="momentum-iterations-control">
+                            <label for="momentum-iterations">Iterations:</label>
+                            <input type="range" id="momentum-iterations" min="50" max="500" step="10" value="100">
+                            <span id="momentum-iterations-value">100</span>
+                        </div>
+                        <div class="control-item" id="momentum-max-iterations-control">
+                            <label for="momentum-max-iterations">Max Iterations:</label>
+                            <input type="range" id="momentum-max-iterations" min="500" max="20000" step="500" value="10000">
+                            <span id="momentum-max-iterations-value">10000</span>
+                        </div>
+                        <div class="control-item" id="momentum-convergence-threshold-control">
+                            <label for="momentum-convergence-threshold">Convergence Threshold:</label>
+                            <input type="range" id="momentum-convergence-threshold" min="0.000001" max="0.01" step="0.000001" value="0.0001">
+                            <span id="momentum-convergence-threshold-value">1e-4</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="canvas-container">
+            <canvas id="canvas"></canvas>
+            <div id="loading" class="hidden">Loading landscape...</div>
+            <div id="manifold-selector">
+                <div class="manifold-info">
+                    <div class="manifold-label">Manifold:</div>
+                    <div id="current-manifold-name">Loading...</div>
+                </div>
+                <select id="manifold-dropdown">
+                    <option value="">Loading manifolds...</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="js/scene.js"></script>
+    <script src="js/optimizers.js"></script>
+    <script src="js/controls.js"></script>
+</body>
+</html>
+

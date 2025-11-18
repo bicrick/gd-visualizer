@@ -1,0 +1,445 @@
+/**
+ * Three.js scene setup for 3D loss landscape visualization
+ */
+
+let scene, camera, renderer, controls;
+let landscapeMesh = null;
+let landscapeGeometry = null;
+let pickingMode = false;
+let raycaster = null;
+let mouse = new THREE.Vector2();
+let currentManifoldId = 'custom_multimodal'; // Default manifold
+let availableManifolds = []; // Store manifold list
+let currentManifoldRange = [-5, 5]; // Store current manifold range for coordinate mapping
+let startPointMarker = null; // Visual marker for the start point
+
+// Use relative URL when served from same origin, absolute URL for development
+window.API_BASE_URL = window.location.origin + '/api';
+const API_BASE_URL = window.API_BASE_URL; // Also keep as const for this file
+
+// Initialize Three.js scene
+function initScene() {
+    // Scene
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0a0a0a);
+    
+    // Camera
+    const container = document.getElementById('canvas-container');
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+    
+    camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000);
+    camera.position.set(15, 15, 15);
+    camera.lookAt(0, 0, 0);
+    
+    // Renderer
+    renderer = new THREE.WebGLRenderer({ 
+        canvas: document.getElementById('canvas'),
+        antialias: true 
+    });
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    
+    // Controls
+    if (typeof THREE.OrbitControls !== 'undefined') {
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.minDistance = 5;
+        controls.maxDistance = 50;
+    } else {
+        // Fallback if OrbitControls not loaded
+        console.warn('OrbitControls not available, using basic camera controls');
+        controls = null;
+    }
+    
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+    scene.add(ambientLight);
+    
+    const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight1.position.set(10, 10, 5);
+    scene.add(directionalLight1);
+    
+    const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.4);
+    directionalLight2.position.set(-10, -10, -5);
+    scene.add(directionalLight2);
+    
+    // Grid helper
+    const gridHelper = new THREE.GridHelper(20, 20, 0x444444, 0x222222);
+    scene.add(gridHelper);
+    
+    // Axes helper
+    const axesHelper = new THREE.AxesHelper(5);
+    scene.add(axesHelper);
+    
+    // Initialize raycaster for point picking
+    raycaster = new THREE.Raycaster();
+    
+    // Handle window resize
+    window.addEventListener('resize', onWindowResize);
+    
+    // Add click handler for point picking
+    renderer.domElement.addEventListener('click', onCanvasClick);
+    
+    // Start render loop
+    animate();
+}
+
+// Load landscape mesh from backend
+async function loadLandscape(manifoldId = null) {
+    const loadingEl = document.getElementById('loading');
+    loadingEl.classList.remove('hidden');
+    
+    // Use provided manifoldId or current one
+    const manifold = manifoldId || currentManifoldId;
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/landscape?resolution=80&manifold=${encodeURIComponent(manifold)}`);
+        const data = await response.json();
+        
+        createLandscapeMesh(data);
+        currentManifoldId = manifold;
+        updateManifoldDisplay(manifold);
+        loadingEl.classList.add('hidden');
+        
+        // Update start point marker after landscape is loaded
+        if (window.currentParams) {
+            setTimeout(() => {
+                if (window.updateStartPointMarker) {
+                    window.updateStartPointMarker(window.currentParams.startX, window.currentParams.startY);
+                }
+            }, 100);
+        }
+    } catch (error) {
+        console.error('Error loading landscape:', error);
+        loadingEl.textContent = 'Error loading landscape. Make sure backend is running.';
+    }
+}
+
+// Load available manifolds from backend
+async function loadManifolds() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/manifolds`);
+        const data = await response.json();
+        availableManifolds = data.manifolds || [];
+        populateManifoldDropdown();
+    } catch (error) {
+        console.error('Error loading manifolds:', error);
+    }
+}
+
+// Populate manifold dropdown with available manifolds
+function populateManifoldDropdown() {
+    const dropdown = document.getElementById('manifold-dropdown');
+    if (!dropdown) return;
+    
+    // Clear existing options
+    dropdown.innerHTML = '';
+    
+    // Add manifold options
+    availableManifolds.forEach(manifold => {
+        const option = document.createElement('option');
+        option.value = manifold.id;
+        option.textContent = `${manifold.name} - ${manifold.description}`;
+        if (manifold.id === currentManifoldId) {
+            option.selected = true;
+        }
+        dropdown.appendChild(option);
+    });
+    
+    // Add change event listener
+    dropdown.addEventListener('change', (e) => {
+        const newManifoldId = e.target.value;
+        changeManifold(newManifoldId);
+    });
+    
+    // Update the display with current manifold
+    updateManifoldDisplay(currentManifoldId);
+}
+
+// Update the manifold name display
+function updateManifoldDisplay(manifoldId) {
+    const nameDisplay = document.getElementById('current-manifold-name');
+    if (!nameDisplay) return;
+    
+    const manifold = availableManifolds.find(m => m.id === manifoldId);
+    if (manifold) {
+        nameDisplay.textContent = manifold.name;
+    }
+}
+
+// Change the current manifold
+async function changeManifold(manifoldId) {
+    if (manifoldId === currentManifoldId) return;
+    
+    // Reset animation and trajectories when changing manifold
+    if (window.resetAnimation) {
+        window.resetAnimation();
+    }
+    if (window.clearTrajectories) {
+        window.clearTrajectories();
+    }
+    
+    // Load new landscape
+    await loadLandscape(manifoldId);
+}
+
+// Expose functions to global scope
+window.loadLandscape = loadLandscape;
+window.getCurrentManifoldId = () => currentManifoldId;
+window.getCurrentManifoldRange = () => currentManifoldRange;
+
+// Create 3D mesh from landscape data
+function createLandscapeMesh(landscapeData) {
+    // Remove existing mesh if present
+    if (landscapeMesh) {
+        scene.remove(landscapeMesh);
+        landscapeGeometry.dispose();
+    }
+    
+    // Store the range from landscape data
+    if (landscapeData.x_range && landscapeData.x_range.length === 2) {
+        currentManifoldRange = landscapeData.x_range;
+    }
+    
+    const x = landscapeData.x;
+    const y = landscapeData.y;
+    const z = landscapeData.z;
+    
+    const rows = z.length;
+    const cols = z[0].length;
+    
+    // Create geometry
+    landscapeGeometry = new THREE.PlaneGeometry(10, 10, cols - 1, rows - 1);
+    const positions = landscapeGeometry.attributes.position;
+    
+    // Normalize z values and set heights
+    const zMin = Math.min(...z.flat());
+    const zMax = Math.max(...z.flat());
+    const zRange = zMax - zMin;
+    const scale = 2.0; // Height scale factor
+    
+    for (let i = 0; i < positions.count; i++) {
+        const row = Math.floor(i / cols);
+        const col = i % cols;
+        
+        if (row < rows && col < cols) {
+            const normalizedZ = (z[row][col] - zMin) / zRange;
+            positions.setZ(i, normalizedZ * scale);
+            
+            // Map x, y positions
+            const xPos = (col / (cols - 1) - 0.5) * 10;
+            const yPos = (row / (rows - 1) - 0.5) * 10;
+            positions.setX(i, xPos);
+            positions.setY(i, yPos);
+        }
+    }
+    
+    positions.needsUpdate = true;
+    landscapeGeometry.computeVertexNormals();
+    
+    // Create material with color gradient based on height
+    const material = new THREE.MeshPhongMaterial({
+        vertexColors: true,
+        side: THREE.DoubleSide,
+        flatShading: false
+    });
+    
+    // Add vertex colors based on height
+    const colors = [];
+    for (let i = 0; i < positions.count; i++) {
+        const z = positions.getZ(i);
+        const normalizedZ = z / scale;
+        
+        // Color gradient: blue (low) -> green -> yellow -> red (high)
+        let r, g, b;
+        if (normalizedZ < 0.25) {
+            r = 0;
+            g = normalizedZ * 4;
+            b = 1;
+        } else if (normalizedZ < 0.5) {
+            r = 0;
+            g = 1;
+            b = 1 - (normalizedZ - 0.25) * 4;
+        } else if (normalizedZ < 0.75) {
+            r = (normalizedZ - 0.5) * 4;
+            g = 1;
+            b = 0;
+        } else {
+            r = 1;
+            g = 1 - (normalizedZ - 0.75) * 4;
+            b = 0;
+        }
+        
+        colors.push(r, g, b);
+    }
+    
+    landscapeGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    
+    // Create mesh
+    landscapeMesh = new THREE.Mesh(landscapeGeometry, material);
+    landscapeMesh.rotation.x = -Math.PI / 2;
+    scene.add(landscapeMesh);
+}
+
+// Create or update start point marker
+function updateStartPointMarker(x, y) {
+    // Remove existing marker if present
+    if (startPointMarker) {
+        scene.remove(startPointMarker);
+        if (startPointMarker.geometry) startPointMarker.geometry.dispose();
+        if (startPointMarker.material) startPointMarker.material.dispose();
+    }
+    
+    // Get height at the start point using the same logic as in optimizers.js
+    let worldY = 0;
+    if (landscapeMesh && landscapeGeometry) {
+        const range = currentManifoldRange;
+        const rangeMin = range[0];
+        const rangeMax = range[1];
+        const rangeSize = rangeMax - rangeMin;
+        
+        const normalizedX = (x - rangeMin) / rangeSize;
+        const normalizedY = (y - rangeMin) / rangeSize;
+        
+        const positions = landscapeGeometry.attributes.position;
+        const gridSize = Math.sqrt(positions.count);
+        
+        const u = Math.max(0, Math.min(1, normalizedX));
+        const v = Math.max(0, Math.min(1, normalizedY));
+        
+        const col = Math.floor(u * (gridSize - 1));
+        const row = Math.floor(v * (gridSize - 1));
+        
+        const idx00 = row * gridSize + col;
+        const idx01 = row * gridSize + Math.min(col + 1, gridSize - 1);
+        const idx10 = Math.min(row + 1, gridSize - 1) * gridSize + col;
+        const idx11 = Math.min(row + 1, gridSize - 1) * gridSize + Math.min(col + 1, gridSize - 1);
+        
+        const fx = u * (gridSize - 1) - col;
+        const fy = v * (gridSize - 1) - row;
+        
+        const h00 = positions.getZ(idx00);
+        const h01 = positions.getZ(idx01);
+        const h10 = positions.getZ(idx10);
+        const h11 = positions.getZ(idx11);
+        
+        const h0 = h00 * (1 - fx) + h01 * fx;
+        const h1 = h10 * (1 - fx) + h11 * fx;
+        const interpolatedHeight = h0 * (1 - fy) + h1 * fy;
+        
+        worldY = interpolatedHeight;
+    }
+    
+    // Create a vertical line from the ground to the surface
+    const points = [
+        new THREE.Vector3(x, 0, y),  // Bottom of line (at ground level)
+        new THREE.Vector3(x, worldY + 0.5, y)  // Top of line (extends above surface)
+    ];
+    
+    const geometry = new THREE.BufferGeometry().setFromPoints(points);
+    const material = new THREE.LineBasicMaterial({ 
+        color: 0xffaa00,  // Orange color to stand out
+        linewidth: 2,
+        opacity: 0.8,
+        transparent: true
+    });
+    
+    startPointMarker = new THREE.Line(geometry, material);
+    scene.add(startPointMarker);
+}
+
+// Expose function to global scope
+window.updateStartPointMarker = updateStartPointMarker;
+
+// Window resize handler
+function onWindowResize() {
+    const container = document.getElementById('canvas-container');
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+    
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+    renderer.setSize(width, height);
+}
+
+// Animation loop
+function animate() {
+    requestAnimationFrame(animate);
+    if (controls) {
+        controls.update();
+    }
+    renderer.render(scene, camera);
+}
+
+// Handle canvas click for point picking
+function onCanvasClick(event) {
+    if (!pickingMode || !landscapeMesh) return;
+    
+    // Calculate mouse position in normalized device coordinates (-1 to +1)
+    const rect = renderer.domElement.getBoundingClientRect();
+    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    
+    // Update raycaster
+    raycaster.setFromCamera(mouse, camera);
+    
+    // Check for intersections with the landscape mesh
+    const intersects = raycaster.intersectObject(landscapeMesh);
+    
+    if (intersects.length > 0) {
+        const intersection = intersects[0];
+        const point = intersection.point;
+        
+        // Convert 3D world coordinates back to 2D parameter space
+        // The landscape mesh is rotated -90 degrees around X axis
+        // So we need to account for that transformation
+        const paramX = point.x;
+        const paramY = point.z; // Z becomes Y due to rotation
+        
+        // Update the UI inputs and parameters
+        if (window.updateStartPosition) {
+            window.updateStartPosition(paramX, paramY);
+        }
+        
+        // Disable picking mode after selecting a point
+        setPickingMode(false);
+    }
+}
+
+// Enable or disable point picking mode
+function setPickingMode(enabled) {
+    pickingMode = enabled;
+    const canvas = renderer.domElement;
+    const pickBtn = document.getElementById('pick-point-btn');
+    
+    if (enabled) {
+        canvas.classList.add('picking-mode');
+        if (pickBtn) pickBtn.classList.add('active');
+    } else {
+        canvas.classList.remove('picking-mode');
+        if (pickBtn) pickBtn.classList.remove('active');
+    }
+}
+
+// Expose picking mode function to global scope
+window.setPickingMode = setPickingMode;
+
+// Initialize on page load
+window.addEventListener('DOMContentLoaded', () => {
+    initScene();
+    loadManifolds(); // Load manifold list first
+    loadLandscape(); // Then load default landscape
+    
+    // Initialize start point marker after a short delay to ensure landscape is loaded
+    setTimeout(() => {
+        // Get initial start position from controls.js default values (3, 3)
+        const startX = 3;
+        const startY = 3;
+        if (window.updateStartPointMarker) {
+            window.updateStartPointMarker(startX, startY);
+        }
+    }, 500);
+});
+

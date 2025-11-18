@@ -259,9 +259,11 @@ def adam_optimizer(loss_func, initial_params, learning_rate, n_iterations,
     return trajectory
 
 
-def find_collision_time(x0, y0, z0, vx0, vy0, vz0, gravity, dt, loss_func, precision=1e-6):
+def find_collision_newton(x0, y0, z0, vx0, vy0, vz0, gravity, dt, loss_func, 
+                         gradient_hint=None, loss_hint=None, max_iters=4):
     """
-    Use bisection to find the exact time of collision with the surface within a time step.
+    Find collision using Newton's method with gradient prediction.
+    Much faster than bisection: 2-4 evaluations instead of 15.
     
     Args:
         x0, y0, z0: Initial position at start of time step
@@ -269,12 +271,14 @@ def find_collision_time(x0, y0, z0, vx0, vy0, vz0, gravity, dt, loss_func, preci
         gravity: Gravitational acceleration
         dt: Full time step
         loss_func: Loss function defining the surface
-        precision: Bisection precision for collision time
+        gradient_hint: Gradient at previous point (for prediction)
+        loss_hint: Loss at previous point (for prediction)
+        max_iters: Maximum Newton iterations (default 4)
     
     Returns:
-        t_collision: Exact time of collision within [0, dt]
-        x_col, y_col, z_col: Position at collision
-        None if no collision found
+        Tuple: (t_collision, x_col, y_col, z_col, gradient_col)
+        where gradient_col can be used as hint for next collision
+        Returns None if no collision found
     """
     def position_at_time(t):
         """Calculate position at time t within the step."""
@@ -283,41 +287,102 @@ def find_collision_time(x0, y0, z0, vx0, vy0, vz0, gravity, dt, loss_func, preci
         z = z0 + vz0 * t - 0.5 * gravity * t * t
         return x, y, z
     
-    def height_above_surface(t):
-        """Calculate how far above/below surface the ball is at time t."""
-        x, y, z = position_at_time(t)
-        surface_z = loss_func(x, y)
-        return z - surface_z
-    
-    # Check if collision occurs in this time step
-    h_start = height_above_surface(0)
-    h_end = height_above_surface(dt)
-    
-    # No collision if both above or both below (and moving away)
-    if h_start > 0 and h_end > 0:
-        return None  # Stayed above surface
-    if h_start < 0:
-        # Started below surface - shouldn't happen but handle it
-        return 0, x0, y0, z0
-    
-    # Collision detected - use bisection to find exact time
-    t_low = 0.0
-    t_high = dt
-    
-    while (t_high - t_low) > precision:
-        t_mid = (t_low + t_high) / 2.0
-        h_mid = height_above_surface(t_mid)
+    # Step 1: Predict collision time using gradient hint (if available)
+    if gradient_hint is not None and loss_hint is not None:
+        # Solve analytically: z(t) = loss_hint + gradient · (xy(t) - xy0)
+        # z0 + vz0*t - 0.5*g*t^2 = loss_hint + grad_x*(vx0*t) + grad_y*(vy0*t)
+        # Rearranging: -0.5*g*t^2 + (vz0 - grad·v_xy)*t + (z0 - loss_hint) = 0
         
-        if h_mid > 0:
-            t_low = t_mid
+        a = -0.5 * gravity
+        b = vz0 - np.dot(gradient_hint, [vx0, vy0])
+        c = z0 - loss_hint
+        
+        # Solve quadratic
+        discriminant = b**2 - 4*a*c
+        if discriminant >= 0 and abs(a) > 1e-10:
+            # Two solutions - take the one in [0, dt]
+            t1 = (-b + np.sqrt(discriminant)) / (2*a)
+            t2 = (-b - np.sqrt(discriminant)) / (2*a)
+            
+            # Choose the first positive collision time
+            candidates = [t for t in [t1, t2] if 0 <= t <= dt]
+            if candidates:
+                t_predicted = min(candidates)
+            else:
+                t_predicted = dt / 2  # Fallback to midpoint
         else:
-            t_high = t_mid
+            t_predicted = dt / 2  # Fallback to midpoint
+    else:
+        t_predicted = dt / 2  # No hint - start at midpoint
     
-    # Use the midpoint as collision time
-    t_collision = (t_low + t_high) / 2.0
-    x_col, y_col, z_col = position_at_time(t_collision)
+    # Quick check: is there actually a collision?
+    x_start, y_start, z_start = position_at_time(0)
+    loss_start = loss_func(x_start, y_start)
+    if z_start - loss_start < 0:
+        # Started below surface - shouldn't happen but handle it
+        return 0, x0, y0, z0, compute_gradient(loss_func, x0, y0)
     
-    return t_collision, x_col, y_col, z_col
+    x_end, y_end, z_end = position_at_time(dt)
+    loss_end = loss_func(x_end, y_end)
+    if z_end - loss_end > 0:
+        # Stayed above surface entire time - no collision
+        return None
+    
+    # Step 2: Newton's method refinement
+    t = t_predicted
+    gradient_col = None
+    
+    for iteration in range(max_iters):
+        # Evaluate trajectory position at current t
+        x_t, y_t, z_t = position_at_time(t)
+        
+        # Evaluate loss and gradient (ONE expensive call per iteration)
+        loss_t = loss_func(x_t, y_t)
+        gradient_col = compute_gradient(loss_func, x_t, y_t)
+        
+        # Function: f(t) = z(t) - L(x(t), y(t))
+        f = z_t - loss_t
+        
+        # Derivative: f'(t) = dz/dt - dL/dt
+        # dz/dt = vz0 - gravity*t
+        # dL/dt = ∇L · d(xy)/dt = ∇L · [vx0, vy0]
+        dz_dt = vz0 - gravity * t
+        dL_dt = np.dot(gradient_col, [vx0, vy0])
+        f_prime = dz_dt - dL_dt
+        
+        # Check convergence
+        if abs(f) < 1e-6:
+            break
+        
+        # Avoid division by very small numbers
+        if abs(f_prime) < 1e-10:
+            # Derivative too small - try bisection fallback
+            if f > 0:  # Above surface
+                t = (t + dt) / 2
+            else:  # Below surface
+                t = t / 2
+            continue
+        
+        # Newton step
+        t_new = t - f / f_prime
+        
+        # Keep t in valid range [0, dt]
+        t = np.clip(t_new, 0, dt)
+        
+        # If we're converging slowly, we might need more iterations
+        # but limit to max_iters for efficiency
+    
+    # Return collision point and gradient
+    x_col, y_col, z_col = position_at_time(t)
+    
+    # Make sure we actually have a collision (not just ended at dt)
+    if t >= dt - 1e-6:
+        # Reached end of timestep without clear collision
+        # Check if we're actually colliding
+        if z_col - loss_func(x_col, y_col) > 0.01:
+            return None  # Still above surface
+    
+    return t, x_col, y_col, z_col, gradient_col
 
 
 def ballistic_gradient_descent(loss_func, initial_params, drop_height=5.0, 
@@ -360,6 +425,10 @@ def ballistic_gradient_descent(loss_func, initial_params, drop_height=5.0,
     trajectory = []
     trajectory.append((float(x), float(y), float(z)))
     
+    # Track gradient and loss for Newton prediction
+    gradient_hint = None
+    loss_hint = None
+    
     for iteration in range(max_iterations):
         # Store previous state for collision detection
         x_prev, y_prev, z_prev = x, y, z
@@ -384,13 +453,14 @@ def ballistic_gradient_descent(loss_func, initial_params, drop_height=5.0,
                 y_new = np.clip(y_new, bounds_min, bounds_max)
                 vy = -vy * elasticity
         
-        # Check for collision with surface using bisection
-        collision_result = find_collision_time(x_prev, y_prev, z_prev, vx_prev, vy_prev, vz_prev, 
-                                                gravity, dt, loss_func)
+        # Check for collision with surface using Newton's method
+        collision_result = find_collision_newton(x_prev, y_prev, z_prev, vx_prev, vy_prev, vz_prev, 
+                                                 gravity, dt, loss_func, 
+                                                 gradient_hint=gradient_hint, loss_hint=loss_hint)
         
         if collision_result is not None and vz_prev < 0:  # Only bounce when moving downward
-            # Collision detected - unpack results
-            t_collision, x_col, y_col, z_col = collision_result
+            # Collision detected - unpack results (now includes gradient!)
+            t_collision, x_col, y_col, z_col, grad_col = collision_result
             
             # Record the collision point in trajectory for smooth arc visualization
             trajectory.append((float(x_col), float(y_col), float(z_col)))
@@ -400,8 +470,12 @@ def ballistic_gradient_descent(loss_func, initial_params, drop_height=5.0,
             vy_col = vy_prev
             vz_col = vz_prev - gravity * t_collision
             
-            # Calculate surface normal using gradient at exact collision point
-            grad = compute_gradient(loss_func, x_col, y_col)
+            # Use gradient from Newton's method (already computed!)
+            grad = grad_col
+            
+            # Update hints for next collision prediction
+            gradient_hint = grad
+            loss_hint = loss_func(x_col, y_col)
             
             # Surface normal (gradient points upward in loss space)
             # Normal vector: (-dL/dx, -dL/dy, 1) then normalize

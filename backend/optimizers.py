@@ -392,6 +392,9 @@ def ballistic_gradient_descent(loss_func, initial_params, drop_height=5.0,
             # Collision detected - unpack results
             t_collision, x_col, y_col, z_col = collision_result
             
+            # Record the collision point in trajectory for smooth arc visualization
+            trajectory.append((float(x_col), float(y_col), float(z_col)))
+            
             # Calculate velocity at collision time
             vx_col = vx_prev
             vy_col = vy_prev

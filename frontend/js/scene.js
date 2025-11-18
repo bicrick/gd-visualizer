@@ -12,6 +12,7 @@ let currentManifoldId = 'custom_multimodal'; // Default manifold
 let availableManifolds = []; // Store manifold list
 let currentManifoldRange = [-5, 5]; // Store current manifold range for coordinate mapping
 let startPointMarker = null; // Visual marker for the start point
+let landscapeZRange = { zMin: 0, zMax: 1, scale: 2.0 }; // Store z-range for ballistic normalization
 
 // Use relative URL when served from same origin, absolute URL for development
 window.API_BASE_URL = window.location.origin + '/api';
@@ -300,6 +301,7 @@ async function changeManifold(manifoldId) {
 window.loadLandscape = loadLandscape;
 window.getCurrentManifoldId = () => currentManifoldId;
 window.getCurrentManifoldRange = () => currentManifoldRange;
+window.getLandscapeZRange = () => landscapeZRange;
 
 // Create 3D mesh from landscape data
 function createLandscapeMesh(landscapeData) {
@@ -330,6 +332,9 @@ function createLandscapeMesh(landscapeData) {
     const zMax = Math.max(...z.flat());
     const zRange = zMax - zMin;
     const scale = 2.0; // Height scale factor
+    
+    // Store z-range globally for ballistic coordinate conversion
+    landscapeZRange = { zMin, zMax, zRange, scale };
     
     for (let i = 0; i < positions.count; i++) {
         const row = Math.floor(i / cols);

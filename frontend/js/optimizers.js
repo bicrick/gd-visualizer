@@ -28,7 +28,8 @@ let enabledOptimizers = {
     sgd: false,
     batch: true,
     momentum: true,
-    adam: true
+    adam: true,
+    ballistic: true
 };
 
 // Colors for each optimizer
@@ -36,7 +37,8 @@ const OPTIMIZER_COLORS = {
     sgd: 0xff4444,
     batch: 0x4444ff,
     momentum: 0x44ff44,
-    adam: 0xff8800
+    adam: 0xff8800,
+    ballistic: 0xff00ff
 };
 
 // Create ball for an optimizer
@@ -139,6 +141,34 @@ function paramsToWorldCoords(x, y, loss) {
     return new THREE.Vector3(worldX, worldY, worldZ);
 }
 
+// Convert ballistic trajectory point (x, y, z_world) to 3D world coordinates
+// For ballistic optimizer, z is already the 3D world height, not loss
+function ballisticToWorldCoords(x, y, z_world) {
+    // Get current manifold range dynamically
+    const range = window.getCurrentManifoldRange ? window.getCurrentManifoldRange() : [-5, 5];
+    const rangeMin = range[0];
+    const rangeMax = range[1];
+    const rangeSize = rangeMax - rangeMin;
+    
+    // Map from parameter space [rangeMin, rangeMax] to world space [-5, 5]
+    const worldX = ((x - rangeMin) / rangeSize - 0.5) * 10;
+    const worldZ = ((y - rangeMin) / rangeSize - 0.5) * 10;
+    
+    // Get landscape z-range to normalize ballistic coordinates the same way as the landscape
+    // The landscape normalizes: (z - zMin) / zRange * scale
+    let worldY = 0;
+    if (window.getLandscapeZRange) {
+        const zRange = window.getLandscapeZRange();
+        // Apply same normalization as landscape
+        worldY = (z_world - zRange.zMin) / zRange.zRange * zRange.scale;
+    } else {
+        // Fallback if landscape not loaded yet
+        worldY = z_world * 0.2;
+    }
+    
+    return new THREE.Vector3(worldX, worldY, worldZ);
+}
+
 // Update trajectory line geometry
 function updateTrajectoryLine(name, trajectory) {
     const line = trajectoryLines[name];
@@ -149,7 +179,14 @@ function updateTrajectoryLine(name, trajectory) {
         return;
     }
     
-    const points = trajectory.map(([x, y, loss]) => paramsToWorldCoords(x, y, loss));
+    // Use different coordinate conversion for ballistic optimizer
+    let points;
+    if (name === 'ballistic') {
+        points = trajectory.map(([x, y, z_world]) => ballisticToWorldCoords(x, y, z_world));
+    } else {
+        points = trajectory.map(([x, y, loss]) => paramsToWorldCoords(x, y, loss));
+    }
+    
     const geometry = new THREE.BufferGeometry().setFromPoints(points);
     
     line.geometry.dispose();
@@ -161,7 +198,7 @@ function updateTrajectoryLine(name, trajectory) {
 }
 
 // Set ball position
-function setBallPosition(name, x, y, loss) {
+function setBallPosition(name, x, y, loss_or_z) {
     const ball = optimizerBalls[name];
     if (!ball) return;
     
@@ -171,7 +208,14 @@ function setBallPosition(name, x, y, loss) {
         return;
     }
     
-    const worldPos = paramsToWorldCoords(x, y, loss);
+    // Use different coordinate conversion for ballistic optimizer
+    let worldPos;
+    if (name === 'ballistic') {
+        worldPos = ballisticToWorldCoords(x, y, loss_or_z);
+    } else {
+        worldPos = paramsToWorldCoords(x, y, loss_or_z);
+    }
+    
     ball.position.copy(worldPos);
     ball.visible = true;
 }
@@ -191,7 +235,7 @@ async function runOptimization(params) {
         const data = await response.json();
         
         // Clear trajectories for disabled optimizers
-        const allOptimizers = ['sgd', 'batch', 'momentum', 'adam'];
+        const allOptimizers = ['sgd', 'batch', 'momentum', 'adam', 'ballistic'];
         allOptimizers.forEach(name => {
             if (!data[name]) {
                 // Clear trajectory for disabled optimizer
@@ -210,7 +254,7 @@ async function runOptimization(params) {
         window.currentTrajectories = data; // Make globally accessible
         
         // Update trajectory lines only for actual optimizer names
-        const validOptimizers = ['sgd', 'batch', 'momentum', 'adam'];
+        const validOptimizers = ['sgd', 'batch', 'momentum', 'adam', 'ballistic'];
         Object.keys(data)
             .filter(name => validOptimizers.includes(name))
             .forEach(name => {
@@ -271,8 +315,8 @@ function animateOptimizers() {
                 const trajectory = currentTrajectories[name];
                 if (trajectory && trajectory.length > 0) {
                     const lastIdx = trajectory.length - 1;
-                    const [x, y, loss] = trajectory[lastIdx];
-                    finalPositions[name] = { x, y, loss };
+                    const [x, y, z_or_loss] = trajectory[lastIdx];
+                    finalPositions[name] = { x, y, loss: z_or_loss };
                 }
             });
             window.updateClassifierViz(finalPositions);
@@ -296,9 +340,9 @@ function animateOptimizers() {
         const trajectory = currentTrajectories[name];
         if (trajectory && trajectory.length > 0) {
             const step = Math.floor(Math.min(animationState.currentStep, trajectory.length - 1));
-            const [x, y, loss] = trajectory[step];
-            setBallPosition(name, x, y, loss);
-            currentPositions[name] = { x, y, loss };
+            const [x, y, z_or_loss] = trajectory[step];
+            setBallPosition(name, x, y, z_or_loss);
+            currentPositions[name] = { x, y, loss: z_or_loss };
         }
     });
     
@@ -399,11 +443,17 @@ function seekToStep(step) {
         
         // Show ball if trajectory has data at this step
         if (step < trajectory.length) {
-            const [x, y, loss] = trajectory[step];
-            const pos = paramsToWorldCoords(x, y, loss);
+            const [x, y, z_or_loss] = trajectory[step];
+            // Use appropriate coordinate conversion
+            let pos;
+            if (name === 'ballistic') {
+                pos = ballisticToWorldCoords(x, y, z_or_loss);
+            } else {
+                pos = paramsToWorldCoords(x, y, z_or_loss);
+            }
             ball.position.copy(pos);
             ball.visible = true;
-            currentPositions[name] = { x, y, loss };
+            currentPositions[name] = { x, y, loss: z_or_loss };
         } else {
             ball.visible = false;
         }

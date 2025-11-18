@@ -336,6 +336,60 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- Ballistic GD Optimizer -->
+                <div class="optimizer-section">
+                    <div class="optimizer-header">
+                        <label class="optimizer-toggle-label">
+                            <input type="checkbox" id="toggle-ballistic" class="optimizer-toggle" checked>
+                            <span class="color-indicator" style="background-color: #ff00ff;"></span>
+                            <span class="optimizer-name">Ballistic GD</span>
+                        </label>
+                        <button class="expand-btn collapsed" data-target="ballistic-params">▶</button>
+                    </div>
+                    <div class="optimizer-params collapsed" id="ballistic-params">
+                        <div class="control-item">
+                            <label for="ballistic-drop-height">
+                                Drop Height:
+                                <i class="info-icon" data-tooltip="Initial height above the surface from which the ball is dropped. Higher values give the ball more initial energy.">i</i>
+                            </label>
+                            <input type="range" id="ballistic-drop-height" min="0.1" max="50" step="0.1" value="5">
+                            <span id="ballistic-drop-height-value">5.0</span>
+                        </div>
+                        <div class="control-item">
+                            <label for="ballistic-gravity">
+                                Gravity:
+                                <i class="info-icon" data-tooltip="Gravitational acceleration constant. Higher values make the ball fall faster and bounce more aggressively.">i</i>
+                            </label>
+                            <input type="range" id="ballistic-gravity" min="0.1" max="2" step="0.1" value="1">
+                            <span id="ballistic-gravity-value">1.0</span>
+                        </div>
+                        <div class="control-item">
+                            <label for="ballistic-elasticity">
+                                Elasticity:
+                                <i class="info-icon" data-tooltip="Energy retention coefficient after each bounce (0-1). Higher values mean the ball retains more energy and bounces longer.">i</i>
+                            </label>
+                            <input type="range" id="ballistic-elasticity" min="0" max="1" step="0.01" value="0.8">
+                            <span id="ballistic-elasticity-value">0.80</span>
+                        </div>
+                        <div class="control-item">
+                            <label for="ballistic-bounce-threshold">
+                                Bounce Threshold:
+                                <i class="info-icon" data-tooltip="Minimum bounce height before stopping. When bounces become smaller than this, the ball is considered settled.">i</i>
+                            </label>
+                            <input type="range" id="ballistic-bounce-threshold" min="0.001" max="0.5" step="0.001" value="0.05">
+                            <span id="ballistic-bounce-threshold-value">0.050</span>
+                        </div>
+                        <div class="control-item">
+                            <label for="ballistic-max-iterations">
+                                Max Iterations:
+                                <i class="info-icon" data-tooltip="Maximum number of simulation steps. Acts as a safety limit for the physics simulation.">i</i>
+                            </label>
+                            <input type="range" id="ballistic-max-iterations" min="500" max="20000" step="500" value="10000">
+                            <span id="ballistic-max-iterations-value">10000</span>
+                        </div>
+                    </div>
+                </div>
             </div>
             </div>
         </div>

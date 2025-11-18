@@ -40,6 +40,13 @@ let currentParams = {
         useConvergence: true,
         maxIterations: 10000,
         convergenceThreshold: 1e-4
+    },
+    ballistic: {
+        dropHeight: 5.0,
+        gravity: 1.0,
+        elasticity: 0.8,
+        bounceThreshold: 0.05,
+        maxIterations: 10000
     }
 };
 
@@ -164,6 +171,7 @@ function initControls() {
     initOptimizerControls('batch', false);
     initOptimizerControls('momentum', true);
     initOptimizerControls('adam', false, true);
+    initOptimizerControls('ballistic', false, false, true);
     
     // Initialize expand/collapse functionality
     // Make the entire header clickable, but prevent checkbox clicks from triggering expand/collapse
@@ -204,13 +212,63 @@ function initControls() {
 }
 
 // Initialize controls for a specific optimizer
-function initOptimizerControls(optimizerName, hasMomentum, isAdam) {
+function initOptimizerControls(optimizerName, hasMomentum, isAdam, isBallistic) {
     const prefix = optimizerName;
     
     // Toggle checkbox
     document.getElementById(`toggle-${prefix}`).addEventListener('change', (e) => {
         window.toggleOptimizer(prefix, e.target.checked);
     });
+    
+    // Ballistic optimizer has different parameters
+    if (isBallistic) {
+        // Drop height slider
+        const dropHeightSlider = document.getElementById(`${prefix}-drop-height`);
+        const dropHeightValue = document.getElementById(`${prefix}-drop-height-value`);
+        dropHeightSlider.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            dropHeightValue.textContent = value.toFixed(1);
+            currentParams[prefix].dropHeight = value;
+        });
+        
+        // Gravity slider
+        const gravitySlider = document.getElementById(`${prefix}-gravity`);
+        const gravityValue = document.getElementById(`${prefix}-gravity-value`);
+        gravitySlider.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            gravityValue.textContent = value.toFixed(1);
+            currentParams[prefix].gravity = value;
+        });
+        
+        // Elasticity slider
+        const elasticitySlider = document.getElementById(`${prefix}-elasticity`);
+        const elasticityValue = document.getElementById(`${prefix}-elasticity-value`);
+        elasticitySlider.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            elasticityValue.textContent = value.toFixed(2);
+            currentParams[prefix].elasticity = value;
+        });
+        
+        // Bounce threshold slider
+        const bounceThresholdSlider = document.getElementById(`${prefix}-bounce-threshold`);
+        const bounceThresholdValue = document.getElementById(`${prefix}-bounce-threshold-value`);
+        bounceThresholdSlider.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            bounceThresholdValue.textContent = value.toFixed(3);
+            currentParams[prefix].bounceThreshold = value;
+        });
+        
+        // Max iterations slider
+        const maxIterationsSlider = document.getElementById(`${prefix}-max-iterations`);
+        const maxIterationsValue = document.getElementById(`${prefix}-max-iterations-value`);
+        maxIterationsSlider.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            maxIterationsValue.textContent = value;
+            currentParams[prefix].maxIterations = value;
+        });
+        
+        return; // No need to set up standard optimizer controls
+    }
     
     // Learning rate slider
     const lrSlider = document.getElementById(`${prefix}-learning-rate`);
@@ -327,7 +385,8 @@ let previousEnabledOptimizers = {
     sgd: false,  // Will be updated on first check
     batch: false,
     momentum: false,
-    adam: false
+    adam: false,
+    ballistic: false
 };
 
 function hasParamsChanged() {
@@ -342,21 +401,24 @@ function hasParamsChanged() {
         JSON.stringify(previousParams.sgd) !== JSON.stringify(currentParams.sgd) ||
         JSON.stringify(previousParams.batch) !== JSON.stringify(currentParams.batch) ||
         JSON.stringify(previousParams.momentum) !== JSON.stringify(currentParams.momentum) ||
-        JSON.stringify(previousParams.adam) !== JSON.stringify(currentParams.adam);
+        JSON.stringify(previousParams.adam) !== JSON.stringify(currentParams.adam) ||
+        JSON.stringify(previousParams.ballistic) !== JSON.stringify(currentParams.ballistic);
     
     // Check if enabled optimizers changed
     const currentEnabled = window.getEnabledOptimizers ? window.getEnabledOptimizers() : {
         sgd: document.getElementById('toggle-sgd')?.checked || false,
         batch: document.getElementById('toggle-batch')?.checked || false,
         momentum: document.getElementById('toggle-momentum')?.checked || false,
-        adam: document.getElementById('toggle-adam')?.checked || false
+        adam: document.getElementById('toggle-adam')?.checked || false,
+        ballistic: document.getElementById('toggle-ballistic')?.checked || false
     };
     
     const enabledOptimizersChanged = (
         previousEnabledOptimizers.sgd !== currentEnabled.sgd ||
         previousEnabledOptimizers.batch !== currentEnabled.batch ||
         previousEnabledOptimizers.momentum !== currentEnabled.momentum ||
-        previousEnabledOptimizers.adam !== currentEnabled.adam
+        previousEnabledOptimizers.adam !== currentEnabled.adam ||
+        previousEnabledOptimizers.ballistic !== currentEnabled.ballistic
     );
     
     return paramsChanged || enabledOptimizersChanged;
@@ -374,7 +436,8 @@ async function runOptimizationFromUI() {
             sgd: document.getElementById('toggle-sgd')?.checked || false,
             batch: document.getElementById('toggle-batch')?.checked || false,
             momentum: document.getElementById('toggle-momentum')?.checked || false,
-            adam: document.getElementById('toggle-adam')?.checked || false
+            adam: document.getElementById('toggle-adam')?.checked || false,
+            ballistic: document.getElementById('toggle-ballistic')?.checked || false
         };
         
         // Build parameters for each enabled optimizer
@@ -407,7 +470,8 @@ async function runOptimizationFromUI() {
                 sgd: currentParams.sgd,
                 batch: currentParams.batch,
                 momentum: currentParams.momentum,
-                adam: currentParams.adam
+                adam: currentParams.adam,
+                ballistic: currentParams.ballistic
             },
             // Include manifold parameters if available
             manifold_params: window.getManifoldParameters ? window.getManifoldParameters() : {}

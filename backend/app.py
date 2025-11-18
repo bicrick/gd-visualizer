@@ -18,7 +18,8 @@ from optimizers import (
     stochastic_gradient_descent,
     batch_gradient_descent,
     momentum_gradient_descent,
-    adam_optimizer
+    adam_optimizer,
+    ballistic_gradient_descent
 )
 
 # Determine the frontend path relative to this file
@@ -134,7 +135,8 @@ def optimize():
         'sgd': True,
         'batch': True,
         'momentum': True,
-        'adam': True
+        'adam': True,
+        'ballistic': True
     })
     
     # Get per-optimizer parameters, or fall back to global parameters
@@ -149,8 +151,20 @@ def optimize():
     default_max_iterations = int(data.get('max_iterations', 10000))
     
     # Helper function to get optimizer-specific params
-    def get_optimizer_params(optimizer_name, has_momentum=False, is_adam=False):
+    def get_optimizer_params(optimizer_name, has_momentum=False, is_adam=False, is_ballistic=False):
         params = optimizer_params.get(optimizer_name, {})
+        
+        if is_ballistic:
+            # Ballistic uses physics parameters instead of learning rate
+            result = {
+                'drop_height': float(params.get('dropHeight', 5.0)),
+                'gravity': float(params.get('gravity', 1.0)),
+                'elasticity': float(params.get('elasticity', 0.8)),
+                'bounce_threshold': float(params.get('bounceThreshold', 0.05)),
+                'max_iterations': int(params.get('maxIterations', 10000))
+            }
+            return result
+        
         learning_rate = float(params.get('learningRate', default_learning_rate))
         n_iterations = int(params.get('iterations', default_n_iterations))
         use_convergence = params.get('useConvergence', default_use_convergence)
@@ -264,6 +278,20 @@ def optimize():
             seed=seed,
             convergence_threshold=params['convergence_threshold'],
             max_iterations=params['max_iterations'],
+            bounds=bounds
+        )
+    
+    if enabled_optimizers.get('ballistic', False):
+        params = get_optimizer_params('ballistic', is_ballistic=True)
+        result['ballistic'] = ballistic_gradient_descent(
+            actual_loss_function,
+            initial_params,
+            drop_height=params['drop_height'],
+            gravity=params['gravity'],
+            elasticity=params['elasticity'],
+            bounce_threshold=params['bounce_threshold'],
+            max_iterations=params['max_iterations'],
+            seed=seed,
             bounds=bounds
         )
     

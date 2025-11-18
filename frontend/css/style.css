@@ -549,14 +549,15 @@ button.active:hover {
 
 #loading {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(0, 0, 0, 0.8);
-    padding: 20px 40px;
-    border-radius: 8px;
-    font-size: 16px;
-    color: #ffffff;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    color: #aaaaaa;
+    pointer-events: none;
+    opacity: 0.7;
 }
 
 .hidden {
@@ -737,6 +738,133 @@ input[type="checkbox"] {
     font-size: 12px;
     color: #9a9a9a;
     line-height: 1.4;
+}
+
+/* Manifold Parameters Panel */
+.manifold-params-panel {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(42, 42, 42, 0.95);
+    border-radius: 8px;
+    border: 1px solid #3a3a3a;
+    backdrop-filter: blur(10px);
+    min-width: 250px;
+    max-width: 350px;
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+}
+
+.manifold-params-panel.hidden {
+    display: none;
+}
+
+.params-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #b0b0b0;
+    background: rgba(26, 26, 26, 0.98);
+    border-bottom: 1px solid #3a3a3a;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s ease;
+}
+
+.params-header:hover {
+    background: rgba(32, 32, 32, 0.98);
+}
+
+.params-toggle {
+    font-size: 10px;
+    color: #808080;
+    transition: transform 0.2s ease;
+}
+
+.manifold-params-panel.collapsed .params-toggle {
+    transform: rotate(-90deg);
+}
+
+.manifold-params-panel.collapsed #manifold-params-container {
+    display: none;
+}
+
+#manifold-params-container {
+    padding: 15px;
+}
+
+.param-control {
+    margin-bottom: 15px;
+}
+
+.param-control:last-child {
+    margin-bottom: 0;
+}
+
+.param-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    font-size: 12px;
+    color: #d0d0d0;
+}
+
+.param-name {
+    font-weight: 500;
+}
+
+.param-value {
+    color: #4a9eff;
+    font-weight: 600;
+    font-family: monospace;
+}
+
+.param-slider {
+    width: 100%;
+    height: 4px;
+    background: #3a3a3a;
+    outline: none;
+    border-radius: 2px;
+    -webkit-appearance: none;
+}
+
+.param-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    background: #4a9eff;
+    cursor: pointer;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.param-slider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    background: #4a9eff;
+    cursor: pointer;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.param-slider::-webkit-slider-thumb:hover {
+    background: #6ab0ff;
+    transform: scale(1.1);
+}
+
+.param-slider::-moz-range-thumb:hover {
+    background: #6ab0ff;
+    transform: scale(1.1);
 }
 
 /* Info Icon and Tooltip */

@@ -408,7 +408,9 @@ async function runOptimizationFromUI() {
                 batch: currentParams.batch,
                 momentum: currentParams.momentum,
                 adam: currentParams.adam
-            }
+            },
+            // Include manifold parameters if available
+            manifold_params: window.getManifoldParameters ? window.getManifoldParameters() : {}
         };
         
         await window.runOptimization(params);
@@ -556,6 +558,100 @@ window.currentParams = currentParams;
 window.setAnimationState = setAnimationState;
 window.updateTimelineDisplay = updateTimelineDisplay;
 window.initializeTimeline = initializeTimeline;
+
+// Manifold parameter handling
+let currentManifoldParams = {};
+
+function populateManifoldParameters(manifold) {
+    const paramsPanel = document.getElementById('manifold-params-panel');
+    const paramsContainer = document.getElementById('manifold-params-container');
+    const paramsHeader = document.getElementById('params-header');
+    
+    if (!paramsPanel || !paramsContainer) return;
+    
+    // Clear existing parameters
+    paramsContainer.innerHTML = '';
+    currentManifoldParams = {};
+    
+    // Check if manifold has parameters
+    if (!manifold.parameters || manifold.parameters.length === 0) {
+        paramsPanel.classList.add('hidden');
+        return;
+    }
+    
+    // Show panel and populate parameters
+    paramsPanel.classList.remove('hidden');
+    
+    // Add collapse toggle functionality (only once)
+    if (!paramsHeader.dataset.hasToggle) {
+        paramsHeader.dataset.hasToggle = 'true';
+        paramsHeader.addEventListener('click', () => {
+            paramsPanel.classList.toggle('collapsed');
+        });
+    }
+    
+    manifold.parameters.forEach(param => {
+        // Initialize with default value
+        currentManifoldParams[param.name] = param.default;
+        
+        // Create parameter control
+        const controlDiv = document.createElement('div');
+        controlDiv.className = 'param-control';
+        
+        // Create label
+        const labelDiv = document.createElement('div');
+        labelDiv.className = 'param-label';
+        
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'param-name';
+        nameSpan.textContent = param.label;
+        
+        const valueSpan = document.createElement('span');
+        valueSpan.className = 'param-value';
+        valueSpan.id = `param-value-${param.name}`;
+        // Format integers without decimals, floats with 2 decimals
+        const isInteger = param.step >= 1;
+        valueSpan.textContent = isInteger ? param.default.toString() : param.default.toFixed(2);
+        
+        labelDiv.appendChild(nameSpan);
+        labelDiv.appendChild(valueSpan);
+        
+        // Create slider
+        const slider = document.createElement('input');
+        slider.type = 'range';
+        slider.className = 'param-slider';
+        slider.id = `param-slider-${param.name}`;
+        slider.min = param.min;
+        slider.max = param.max;
+        slider.step = param.step;
+        slider.value = param.default;
+        
+        // Add event listener for real-time updates
+        slider.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            currentManifoldParams[param.name] = value;
+            // Format integers without decimals, floats with 2 decimals
+            valueSpan.textContent = isInteger ? value.toString() : value.toFixed(2);
+            
+            // Reload landscape with new parameters
+            if (window.loadLandscape) {
+                window.loadLandscape(window.currentManifoldId);
+            }
+        });
+        
+        controlDiv.appendChild(labelDiv);
+        controlDiv.appendChild(slider);
+        paramsContainer.appendChild(controlDiv);
+    });
+}
+
+function getManifoldParameters() {
+    return currentManifoldParams;
+}
+
+// Make these functions globally available
+window.populateManifoldParameters = populateManifoldParameters;
+window.getManifoldParameters = getManifoldParameters;
 
 // Initialize on page load
 window.addEventListener('DOMContentLoaded', () => {

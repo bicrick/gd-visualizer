@@ -53,8 +53,18 @@ def get_landscape():
     """
     Generate and return loss landscape mesh data for 3D visualization.
     """
+    import json
     manifold_id = request.args.get('manifold', DEFAULT_MANIFOLD_ID)
     resolution = int(request.args.get('resolution', 100))
+    
+    # Parse manifold parameters if provided
+    params_str = request.args.get('params', None)
+    func_params = None
+    if params_str:
+        try:
+            func_params = json.loads(params_str)
+        except json.JSONDecodeError:
+            func_params = None
     
     # Get manifold metadata to use default range if not specified
     manifold_meta = get_manifold_metadata(manifold_id)
@@ -81,7 +91,8 @@ def get_landscape():
         loss_function,
         x_range=(x_min, x_max),
         y_range=(y_min, y_max),
-        resolution=resolution
+        resolution=resolution,
+        func_params=func_params
     )
     
     # Add manifold info and range to response
@@ -175,6 +186,17 @@ def optimize():
     # Get the appropriate loss function for the selected manifold
     loss_function = get_manifold_function(manifold_id)
     
+    # Get manifold parameters if provided
+    manifold_params = data.get('manifold_params', {})
+    
+    # Create wrapper function if manifold has parameters
+    if manifold_params:
+        def loss_wrapper(x, y):
+            return loss_function(x, y, **manifold_params)
+        actual_loss_function = loss_wrapper
+    else:
+        actual_loss_function = loss_function
+    
     # Get manifold metadata to get bounds
     manifold_meta = get_manifold_metadata(manifold_id)
     default_range = manifold_meta['default_range']
@@ -187,7 +209,7 @@ def optimize():
     if enabled_optimizers.get('sgd', False):
         params = get_optimizer_params('sgd')
         result['sgd'] = stochastic_gradient_descent(
-            loss_function,
+            actual_loss_function,
             initial_params,
             params['learning_rate'],
             params['n_iterations'],
@@ -201,7 +223,7 @@ def optimize():
     if enabled_optimizers.get('batch', False):
         params = get_optimizer_params('batch')
         result['batch'] = batch_gradient_descent(
-            loss_function,
+            actual_loss_function,
             initial_params,
             params['learning_rate'],
             params['n_iterations'],
@@ -215,7 +237,7 @@ def optimize():
     if enabled_optimizers.get('momentum', False):
         params = get_optimizer_params('momentum', has_momentum=True)
         result['momentum'] = momentum_gradient_descent(
-            loss_function,
+            actual_loss_function,
             initial_params,
             params['learning_rate'],
             params['momentum'],
@@ -231,7 +253,7 @@ def optimize():
     if enabled_optimizers.get('adam', False):
         params = get_optimizer_params('adam', is_adam=True)
         result['adam'] = adam_optimizer(
-            loss_function,
+            actual_loss_function,
             initial_params,
             params['learning_rate'],
             params['n_iterations'],

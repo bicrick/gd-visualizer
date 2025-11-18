@@ -20,16 +20,23 @@ def rastrigin(x, y, A=10):
     return A * 2 + (x**2 - A * np.cos(1.5 * np.pi * x)) + (y**2 - A * np.cos(1.5 * np.pi * y))
 
 
-def custom_multimodal(x, y):
+def custom_multimodal(x, y, global_scale=0.1, well_width=2.0, well_depth_scale=1.0, num_wells=6):
     """
-    Custom function with multiple local minima for demonstration.
-    Combines multiple Gaussian-like wells.
+    Custom function with multiple local minima (wells/valleys) for demonstration.
+    Combines Gaussian wells with adjustable parameters.
+    
+    Args:
+        x, y: coordinates in parameter space
+        global_scale: multiplier for the quadratic term (default 0.1)
+        well_width: controls the Gaussian width (default 2.0)
+        well_depth_scale: multiplier for all well depths (default 1.0)
+        num_wells: number of wells (valleys) to include (default 6, max 6)
     """
     # Global minimum at (0, 0)
-    loss = (x**2 + y**2) * 0.1
+    loss = (x**2 + y**2) * global_scale
     
-    # Local minima at various points
-    wells = [
+    # Well positions (these will be valleys/local minima)
+    all_wells = [
         (-3, -3, 2.0),
         (3, -3, 2.5),
         (-3, 3, 2.2),
@@ -38,9 +45,16 @@ def custom_multimodal(x, y):
         (0, 4, 1.8),
     ]
     
+    # Use only the first num_wells
+    wells = all_wells[:int(num_wells)]
+    
+    # Add wells (subtract to create valleys/local minima)
     for wx, wy, depth in wells:
         dist_sq = (x - wx)**2 + (y - wy)**2
-        loss += depth * np.exp(-dist_sq / 2.0)
+        loss -= depth * well_depth_scale * np.exp(-dist_sq / well_width)
+    
+    # Add a baseline to ensure mostly positive values
+    loss += 15.0
     
     return loss
 
@@ -64,18 +78,6 @@ def ackley(x, y):
 
 
 
-def six_hump_camel(x, y):
-    """
-    Six-Hump Camel function - has 6 local minima.
-    Global minima at (0.0898, -0.7126) and (-0.0898, 0.7126) with value -1.0316.
-    """
-    term1 = (4 - 2.1*x**2 + (x**4)/3) * x**2
-    term2 = x*y
-    term3 = (-4 + 4*y**2) * y**2
-    
-    # Scale up dramatically for visualization
-    # Add offset to ensure positive values and scale up aggressively
-    return (term1 + term2 + term3 + 2.0) * 15.0
 
 
 def compute_gradient(func, x, y, h=1e-5):
@@ -235,7 +237,7 @@ def neural_net_classifier_loss(center_x, center_y):
     return max(0.05, scaled_loss)
 
 
-def generate_landscape_mesh(func, x_range=(-5, 5), y_range=(-5, 5), resolution=100):
+def generate_landscape_mesh(func, x_range=(-5, 5), y_range=(-5, 5), resolution=100, func_params=None):
     """
     Generate a mesh grid of loss values for 3D visualization.
     
@@ -244,6 +246,7 @@ def generate_landscape_mesh(func, x_range=(-5, 5), y_range=(-5, 5), resolution=1
         x_range: Tuple of (min, max) for x-axis
         y_range: Tuple of (min, max) for y-axis
         resolution: Number of points per axis
+        func_params: Optional dictionary of additional parameters to pass to the function
     
     Returns:
         Dictionary with 'x', 'y', 'z' (loss) arrays for mesh plotting
@@ -256,7 +259,10 @@ def generate_landscape_mesh(func, x_range=(-5, 5), y_range=(-5, 5), resolution=1
     Z = np.zeros_like(X)
     for i in range(X.shape[0]):
         for j in range(X.shape[1]):
-            Z[i, j] = func(X[i, j], Y[i, j])
+            if func_params:
+                Z[i, j] = func(X[i, j], Y[i, j], **func_params)
+            else:
+                Z[i, j] = func(X[i, j], Y[i, j])
     
     return {
         'x': X.tolist(),
@@ -271,9 +277,15 @@ def generate_landscape_mesh(func, x_range=(-5, 5), y_range=(-5, 5), resolution=1
 MANIFOLD_REGISTRY = {
     'custom_multimodal': {
         'function': custom_multimodal,
-        'name': 'Custom Multimodal',
-        'description': 'Multiple Gaussian wells with local minima',
+        'name': 'Gaussian Wells',
+        'description': 'Multiple Gaussian wells with adjustable parameters',
         'default_range': (-5, 5),
+        'parameters': [
+            {'name': 'global_scale', 'label': 'Global Scale', 'min': 0.0, 'max': 0.5, 'step': 0.01, 'default': 0.1},
+            {'name': 'well_width', 'label': 'Well Width', 'min': 0.5, 'max': 5.0, 'step': 0.1, 'default': 2.0},
+            {'name': 'well_depth_scale', 'label': 'Well Depth', 'min': 0.1, 'max': 3.0, 'step': 0.1, 'default': 1.0},
+            {'name': 'num_wells', 'label': 'Number of Wells', 'min': 1, 'max': 6, 'step': 1, 'default': 6}
+        ]
     },
     'himmelblau': {
         'function': himmelblau,
@@ -292,12 +304,6 @@ MANIFOLD_REGISTRY = {
         'name': 'Ackley',
         'description': 'Corrugated surface with deep central minimum',
         'default_range': (-5, 5),
-    },
-    'six_hump_camel': {
-        'function': six_hump_camel,
-        'name': 'Six-Hump Camel',
-        'description': '6 local minima',
-        'default_range': (-2, 2),
     },
     'neural_net_classifier': {
         'function': neural_net_classifier_loss,
@@ -333,17 +339,23 @@ def get_manifold_metadata(manifold_id):
         manifold_id: String identifier for the manifold
     
     Returns:
-        Dictionary with name, description, and default_range
+        Dictionary with name, description, default_range, and optional parameters
     """
     if manifold_id not in MANIFOLD_REGISTRY:
         manifold_id = 'custom_multimodal'
     
-    return {
+    metadata = {
         'id': manifold_id,
         'name': MANIFOLD_REGISTRY[manifold_id]['name'],
         'description': MANIFOLD_REGISTRY[manifold_id]['description'],
         'default_range': MANIFOLD_REGISTRY[manifold_id]['default_range'],
     }
+    
+    # Include parameters if they exist
+    if 'parameters' in MANIFOLD_REGISTRY[manifold_id]:
+        metadata['parameters'] = MANIFOLD_REGISTRY[manifold_id]['parameters']
+    
+    return metadata
 
 
 def list_all_manifolds():

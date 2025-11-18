@@ -95,7 +95,18 @@ async function loadLandscape(manifoldId = null) {
     const manifold = manifoldId || currentManifoldId;
     
     try {
-        const response = await fetch(`${API_BASE_URL}/landscape?resolution=80&manifold=${encodeURIComponent(manifold)}`);
+        // Build URL with parameters if available
+        let url = `${API_BASE_URL}/landscape?resolution=80&manifold=${encodeURIComponent(manifold)}`;
+        
+        // Add manifold parameters if available
+        if (window.getManifoldParameters) {
+            const params = window.getManifoldParameters();
+            if (params && Object.keys(params).length > 0) {
+                url += `&params=${encodeURIComponent(JSON.stringify(params))}`;
+            }
+        }
+        
+        const response = await fetch(url);
         const data = await response.json();
         
         createLandscapeMesh(data);
@@ -184,6 +195,12 @@ function populateManifoldDropdown() {
     
     // Update the display with current manifold
     updateManifoldDisplay(currentManifoldId);
+    
+    // Populate parameters for the initially selected manifold
+    const initialManifold = availableManifolds.find(m => m.id === currentManifoldId);
+    if (initialManifold && window.populateManifoldParameters) {
+        window.populateManifoldParameters(initialManifold);
+    }
 }
 
 // Toggle dropdown open/closed
@@ -248,6 +265,12 @@ async function changeManifold(manifoldId) {
                 option.classList.remove('selected');
             }
         });
+    }
+    
+    // Populate manifold parameters if available
+    const manifold = availableManifolds.find(m => m.id === manifoldId);
+    if (manifold && window.populateManifoldParameters) {
+        window.populateManifoldParameters(manifold);
     }
     
     // Load new landscape

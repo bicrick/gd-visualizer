@@ -46,7 +46,21 @@ let currentParams = {
         gravity: 1.0,
         elasticity: 0.8,
         bounceThreshold: 0.05,
+        ballRadius: 0.05,
         maxIterations: 10000
+    },
+    ballistic_adam: {
+        learningRate: 0.01,
+        momentum: 0.9,
+        gravity: 0.001,
+        dt: 1.0,
+        maxAirSteps: 20,
+        maxBisectionIters: 10,
+        collisionTol: 0.001,
+        iterations: 100,
+        useConvergence: true,
+        maxIterations: 10000,
+        convergenceThreshold: 1e-4
     }
 };
 
@@ -172,13 +186,19 @@ function initControls() {
     initOptimizerControls('momentum', true);
     initOptimizerControls('adam', false, true);
     initOptimizerControls('ballistic', false, false, true);
+    initOptimizerControls('ballistic_adam', false, false, false, true);
     
     // Initialize expand/collapse functionality
     // Make the entire header clickable, but prevent checkbox clicks from triggering expand/collapse
     document.querySelectorAll('.optimizer-header').forEach(header => {
         const btn = header.querySelector('.expand-btn');
+        if (!btn) return; // Skip if no expand button found
+        
         const targetId = btn.getAttribute('data-target');
+        if (!targetId) return; // Skip if no target specified
+        
         const targetEl = document.getElementById(targetId);
+        if (!targetEl) return; // Skip if target element not found
         
         // Handle header click (entire row)
         header.addEventListener('click', (e) => {
@@ -212,19 +232,138 @@ function initControls() {
 }
 
 // Initialize controls for a specific optimizer
-function initOptimizerControls(optimizerName, hasMomentum, isAdam, isBallistic) {
+function initOptimizerControls(optimizerName, hasMomentum, isAdam, isBallistic, isBallisticAdam) {
     const prefix = optimizerName;
+    // Convert underscores to hyphens for DOM element IDs (HTML uses hyphens)
+    const domPrefix = prefix.replace(/_/g, '-');
     
     // Toggle checkbox
-    document.getElementById(`toggle-${prefix}`).addEventListener('change', (e) => {
+    document.getElementById(`toggle-${domPrefix}`).addEventListener('change', (e) => {
         window.toggleOptimizer(prefix, e.target.checked);
     });
+    
+    // Ballistic Adam optimizer has both gradient and physics parameters
+    if (isBallisticAdam) {
+        // Learning rate slider
+        const lrSlider = document.getElementById(`${domPrefix}-learning-rate`);
+        const lrValue = document.getElementById(`${domPrefix}-learning-rate-value`);
+        lrSlider.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            lrValue.textContent = value.toFixed(3);
+            currentParams[prefix].learningRate = value;
+        });
+        
+        // Momentum slider
+        const momentumSlider = document.getElementById(`${domPrefix}-momentum`);
+        const momentumValue = document.getElementById(`${domPrefix}-momentum-value`);
+        momentumSlider.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            momentumValue.textContent = value.toFixed(2);
+            currentParams[prefix].momentum = value;
+        });
+        
+        // Gravity slider
+        const gravitySlider = document.getElementById(`${domPrefix}-gravity`);
+        const gravityValue = document.getElementById(`${domPrefix}-gravity-value`);
+        gravitySlider.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            gravityValue.textContent = value.toFixed(4);
+            currentParams[prefix].gravity = value;
+        });
+        
+        // dt slider
+        const dtSlider = document.getElementById(`${domPrefix}-dt`);
+        const dtValue = document.getElementById(`${domPrefix}-dt-value`);
+        dtSlider.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            dtValue.textContent = value.toFixed(1);
+            currentParams[prefix].dt = value;
+        });
+        
+        // Max air steps slider
+        const maxAirStepsSlider = document.getElementById(`${domPrefix}-max-air-steps`);
+        const maxAirStepsValue = document.getElementById(`${domPrefix}-max-air-steps-value`);
+        maxAirStepsSlider.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            maxAirStepsValue.textContent = value;
+            currentParams[prefix].maxAirSteps = value;
+        });
+        
+        // Max bisection iterations slider
+        const maxBisectionItersSlider = document.getElementById(`${domPrefix}-max-bisection-iters`);
+        const maxBisectionItersValue = document.getElementById(`${domPrefix}-max-bisection-iters-value`);
+        maxBisectionItersSlider.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            maxBisectionItersValue.textContent = value;
+            currentParams[prefix].maxBisectionIters = value;
+        });
+        
+        // Collision tolerance slider
+        const collisionTolSlider = document.getElementById(`${domPrefix}-collision-tol`);
+        const collisionTolValue = document.getElementById(`${domPrefix}-collision-tol-value`);
+        collisionTolSlider.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            collisionTolValue.textContent = value.toExponential(0);
+            currentParams[prefix].collisionTol = value;
+        });
+        
+        // Use convergence checkbox (standard for all gradient-based optimizers)
+        const useConvergenceCheckbox = document.getElementById(`${domPrefix}-use-convergence`);
+        const iterationsControl = document.getElementById(`${domPrefix}-iterations-control`);
+        const maxIterationsControl = document.getElementById(`${domPrefix}-max-iterations-control`);
+        const convergenceThresholdControl = document.getElementById(`${domPrefix}-convergence-threshold-control`);
+        
+        useConvergenceCheckbox.addEventListener('change', (e) => {
+            const useConvergence = e.target.checked;
+            currentParams[prefix].useConvergence = useConvergence;
+            
+            // Toggle visibility of controls
+            if (useConvergence) {
+                iterationsControl.classList.add('hidden');
+                maxIterationsControl.classList.remove('hidden');
+                convergenceThresholdControl.classList.remove('hidden');
+            } else {
+                iterationsControl.classList.remove('hidden');
+                maxIterationsControl.classList.add('hidden');
+                convergenceThresholdControl.classList.add('hidden');
+            }
+        });
+        
+        // Iterations slider
+        const iterationsSlider = document.getElementById(`${domPrefix}-iterations`);
+        const iterationsValue = document.getElementById(`${domPrefix}-iterations-value`);
+        iterationsSlider.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            iterationsValue.textContent = value;
+            currentParams[prefix].iterations = value;
+        });
+        
+        // Max iterations slider
+        const maxIterationsSlider = document.getElementById(`${domPrefix}-max-iterations`);
+        const maxIterationsValue = document.getElementById(`${domPrefix}-max-iterations-value`);
+        maxIterationsSlider.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            maxIterationsValue.textContent = value;
+            currentParams[prefix].maxIterations = value;
+        });
+        
+        // Convergence threshold slider
+        const convergenceThresholdSlider = document.getElementById(`${domPrefix}-convergence-threshold`);
+        const convergenceThresholdValue = document.getElementById(`${domPrefix}-convergence-threshold-value`);
+        convergenceThresholdSlider.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            convergenceThresholdValue.textContent = value.toExponential(0);
+            currentParams[prefix].convergenceThreshold = value;
+        });
+        
+        return; // No need to set up other controls
+    }
     
     // Ballistic optimizer has different parameters
     if (isBallistic) {
         // Drop height slider
-        const dropHeightSlider = document.getElementById(`${prefix}-drop-height`);
-        const dropHeightValue = document.getElementById(`${prefix}-drop-height-value`);
+        const dropHeightSlider = document.getElementById(`${domPrefix}-drop-height`);
+        const dropHeightValue = document.getElementById(`${domPrefix}-drop-height-value`);
         dropHeightSlider.addEventListener('input', (e) => {
             const value = parseFloat(e.target.value);
             dropHeightValue.textContent = value.toFixed(1);
@@ -232,8 +371,8 @@ function initOptimizerControls(optimizerName, hasMomentum, isAdam, isBallistic) 
         });
         
         // Gravity slider
-        const gravitySlider = document.getElementById(`${prefix}-gravity`);
-        const gravityValue = document.getElementById(`${prefix}-gravity-value`);
+        const gravitySlider = document.getElementById(`${domPrefix}-gravity`);
+        const gravityValue = document.getElementById(`${domPrefix}-gravity-value`);
         gravitySlider.addEventListener('input', (e) => {
             const value = parseFloat(e.target.value);
             gravityValue.textContent = value.toFixed(1);
@@ -241,8 +380,8 @@ function initOptimizerControls(optimizerName, hasMomentum, isAdam, isBallistic) 
         });
         
         // Elasticity slider
-        const elasticitySlider = document.getElementById(`${prefix}-elasticity`);
-        const elasticityValue = document.getElementById(`${prefix}-elasticity-value`);
+        const elasticitySlider = document.getElementById(`${domPrefix}-elasticity`);
+        const elasticityValue = document.getElementById(`${domPrefix}-elasticity-value`);
         elasticitySlider.addEventListener('input', (e) => {
             const value = parseFloat(e.target.value);
             elasticityValue.textContent = value.toFixed(2);
@@ -250,17 +389,26 @@ function initOptimizerControls(optimizerName, hasMomentum, isAdam, isBallistic) 
         });
         
         // Bounce threshold slider
-        const bounceThresholdSlider = document.getElementById(`${prefix}-bounce-threshold`);
-        const bounceThresholdValue = document.getElementById(`${prefix}-bounce-threshold-value`);
+        const bounceThresholdSlider = document.getElementById(`${domPrefix}-bounce-threshold`);
+        const bounceThresholdValue = document.getElementById(`${domPrefix}-bounce-threshold-value`);
         bounceThresholdSlider.addEventListener('input', (e) => {
             const value = parseFloat(e.target.value);
             bounceThresholdValue.textContent = value.toFixed(3);
             currentParams[prefix].bounceThreshold = value;
         });
         
+        // Ball radius slider
+        const ballRadiusSlider = document.getElementById(`${domPrefix}-ball-radius`);
+        const ballRadiusValue = document.getElementById(`${domPrefix}-ball-radius-value`);
+        ballRadiusSlider.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            ballRadiusValue.textContent = value.toFixed(2);
+            currentParams[prefix].ballRadius = value;
+        });
+        
         // Max iterations slider
-        const maxIterationsSlider = document.getElementById(`${prefix}-max-iterations`);
-        const maxIterationsValue = document.getElementById(`${prefix}-max-iterations-value`);
+        const maxIterationsSlider = document.getElementById(`${domPrefix}-max-iterations`);
+        const maxIterationsValue = document.getElementById(`${domPrefix}-max-iterations-value`);
         maxIterationsSlider.addEventListener('input', (e) => {
             const value = parseInt(e.target.value);
             maxIterationsValue.textContent = value;
@@ -271,8 +419,8 @@ function initOptimizerControls(optimizerName, hasMomentum, isAdam, isBallistic) 
     }
     
     // Learning rate slider
-    const lrSlider = document.getElementById(`${prefix}-learning-rate`);
-    const lrValue = document.getElementById(`${prefix}-learning-rate-value`);
+    const lrSlider = document.getElementById(`${domPrefix}-learning-rate`);
+    const lrValue = document.getElementById(`${domPrefix}-learning-rate-value`);
     lrSlider.addEventListener('input', (e) => {
         const value = parseFloat(e.target.value);
         lrValue.textContent = value.toFixed(3);
@@ -281,8 +429,8 @@ function initOptimizerControls(optimizerName, hasMomentum, isAdam, isBallistic) 
     
     // Momentum slider (only for momentum optimizer)
     if (hasMomentum) {
-        const momentumSlider = document.getElementById(`${prefix}-momentum`);
-        const momentumValue = document.getElementById(`${prefix}-momentum-value`);
+        const momentumSlider = document.getElementById(`${domPrefix}-momentum`);
+        const momentumValue = document.getElementById(`${domPrefix}-momentum-value`);
         momentumSlider.addEventListener('input', (e) => {
             const value = parseFloat(e.target.value);
             momentumValue.textContent = value.toFixed(2);
@@ -290,8 +438,8 @@ function initOptimizerControls(optimizerName, hasMomentum, isAdam, isBallistic) 
         });
         
         // Learning rate decay slider (only for momentum optimizer)
-        const lrDecaySlider = document.getElementById(`${prefix}-lr-decay`);
-        const lrDecayValue = document.getElementById(`${prefix}-lr-decay-value`);
+        const lrDecaySlider = document.getElementById(`${domPrefix}-lr-decay`);
+        const lrDecayValue = document.getElementById(`${domPrefix}-lr-decay-value`);
         lrDecaySlider.addEventListener('input', (e) => {
             const value = parseFloat(e.target.value);
             lrDecayValue.textContent = value.toFixed(3);
@@ -302,8 +450,8 @@ function initOptimizerControls(optimizerName, hasMomentum, isAdam, isBallistic) 
     // ADAM-specific parameters
     if (isAdam) {
         // Beta1 slider
-        const beta1Slider = document.getElementById(`${prefix}-beta1`);
-        const beta1Value = document.getElementById(`${prefix}-beta1-value`);
+        const beta1Slider = document.getElementById(`${domPrefix}-beta1`);
+        const beta1Value = document.getElementById(`${domPrefix}-beta1-value`);
         beta1Slider.addEventListener('input', (e) => {
             const value = parseFloat(e.target.value);
             beta1Value.textContent = value.toFixed(3);
@@ -311,8 +459,8 @@ function initOptimizerControls(optimizerName, hasMomentum, isAdam, isBallistic) 
         });
         
         // Beta2 slider
-        const beta2Slider = document.getElementById(`${prefix}-beta2`);
-        const beta2Value = document.getElementById(`${prefix}-beta2-value`);
+        const beta2Slider = document.getElementById(`${domPrefix}-beta2`);
+        const beta2Value = document.getElementById(`${domPrefix}-beta2-value`);
         beta2Slider.addEventListener('input', (e) => {
             const value = parseFloat(e.target.value);
             beta2Value.textContent = value.toFixed(4);
@@ -320,8 +468,8 @@ function initOptimizerControls(optimizerName, hasMomentum, isAdam, isBallistic) 
         });
         
         // Epsilon slider
-        const epsilonSlider = document.getElementById(`${prefix}-epsilon`);
-        const epsilonValue = document.getElementById(`${prefix}-epsilon-value`);
+        const epsilonSlider = document.getElementById(`${domPrefix}-epsilon`);
+        const epsilonValue = document.getElementById(`${domPrefix}-epsilon-value`);
         epsilonSlider.addEventListener('input', (e) => {
             const value = parseFloat(e.target.value);
             epsilonValue.textContent = value.toExponential(0);
@@ -330,10 +478,10 @@ function initOptimizerControls(optimizerName, hasMomentum, isAdam, isBallistic) 
     }
     
     // Use convergence checkbox
-    const useConvergenceCheckbox = document.getElementById(`${prefix}-use-convergence`);
-    const iterationsControl = document.getElementById(`${prefix}-iterations-control`);
-    const maxIterationsControl = document.getElementById(`${prefix}-max-iterations-control`);
-    const convergenceThresholdControl = document.getElementById(`${prefix}-convergence-threshold-control`);
+    const useConvergenceCheckbox = document.getElementById(`${domPrefix}-use-convergence`);
+    const iterationsControl = document.getElementById(`${domPrefix}-iterations-control`);
+    const maxIterationsControl = document.getElementById(`${domPrefix}-max-iterations-control`);
+    const convergenceThresholdControl = document.getElementById(`${domPrefix}-convergence-threshold-control`);
     
     useConvergenceCheckbox.addEventListener('change', (e) => {
         const useConvergence = e.target.checked;
@@ -352,8 +500,8 @@ function initOptimizerControls(optimizerName, hasMomentum, isAdam, isBallistic) 
     });
     
     // Iterations slider
-    const iterationsSlider = document.getElementById(`${prefix}-iterations`);
-    const iterationsValue = document.getElementById(`${prefix}-iterations-value`);
+    const iterationsSlider = document.getElementById(`${domPrefix}-iterations`);
+    const iterationsValue = document.getElementById(`${domPrefix}-iterations-value`);
     iterationsSlider.addEventListener('input', (e) => {
         const value = parseInt(e.target.value);
         iterationsValue.textContent = value;
@@ -361,8 +509,8 @@ function initOptimizerControls(optimizerName, hasMomentum, isAdam, isBallistic) 
     });
     
     // Max iterations slider
-    const maxIterationsSlider = document.getElementById(`${prefix}-max-iterations`);
-    const maxIterationsValue = document.getElementById(`${prefix}-max-iterations-value`);
+    const maxIterationsSlider = document.getElementById(`${domPrefix}-max-iterations`);
+    const maxIterationsValue = document.getElementById(`${domPrefix}-max-iterations-value`);
     maxIterationsSlider.addEventListener('input', (e) => {
         const value = parseInt(e.target.value);
         maxIterationsValue.textContent = value;
@@ -370,8 +518,8 @@ function initOptimizerControls(optimizerName, hasMomentum, isAdam, isBallistic) 
     });
     
     // Convergence threshold slider
-    const convergenceThresholdSlider = document.getElementById(`${prefix}-convergence-threshold`);
-    const convergenceThresholdValue = document.getElementById(`${prefix}-convergence-threshold-value`);
+    const convergenceThresholdSlider = document.getElementById(`${domPrefix}-convergence-threshold`);
+    const convergenceThresholdValue = document.getElementById(`${domPrefix}-convergence-threshold-value`);
     convergenceThresholdSlider.addEventListener('input', (e) => {
         const value = parseFloat(e.target.value);
         convergenceThresholdValue.textContent = value.toExponential(0);
@@ -386,7 +534,8 @@ let previousEnabledOptimizers = {
     batch: false,
     momentum: false,
     adam: false,
-    ballistic: false
+    ballistic: false,
+    ballistic_adam: false
 };
 
 function hasParamsChanged() {
@@ -402,7 +551,8 @@ function hasParamsChanged() {
         JSON.stringify(previousParams.batch) !== JSON.stringify(currentParams.batch) ||
         JSON.stringify(previousParams.momentum) !== JSON.stringify(currentParams.momentum) ||
         JSON.stringify(previousParams.adam) !== JSON.stringify(currentParams.adam) ||
-        JSON.stringify(previousParams.ballistic) !== JSON.stringify(currentParams.ballistic);
+        JSON.stringify(previousParams.ballistic) !== JSON.stringify(currentParams.ballistic) ||
+        JSON.stringify(previousParams.ballistic_adam) !== JSON.stringify(currentParams.ballistic_adam);
     
     // Check if enabled optimizers changed
     const currentEnabled = window.getEnabledOptimizers ? window.getEnabledOptimizers() : {
@@ -410,7 +560,8 @@ function hasParamsChanged() {
         batch: document.getElementById('toggle-batch')?.checked || false,
         momentum: document.getElementById('toggle-momentum')?.checked || false,
         adam: document.getElementById('toggle-adam')?.checked || false,
-        ballistic: document.getElementById('toggle-ballistic')?.checked || false
+        ballistic: document.getElementById('toggle-ballistic')?.checked || false,
+        ballistic_adam: document.getElementById('toggle-ballistic-adam')?.checked || false
     };
     
     const enabledOptimizersChanged = (
@@ -418,7 +569,8 @@ function hasParamsChanged() {
         previousEnabledOptimizers.batch !== currentEnabled.batch ||
         previousEnabledOptimizers.momentum !== currentEnabled.momentum ||
         previousEnabledOptimizers.adam !== currentEnabled.adam ||
-        previousEnabledOptimizers.ballistic !== currentEnabled.ballistic
+        previousEnabledOptimizers.ballistic !== currentEnabled.ballistic ||
+        previousEnabledOptimizers.ballistic_adam !== currentEnabled.ballistic_adam
     );
     
     return paramsChanged || enabledOptimizersChanged;
@@ -437,7 +589,8 @@ async function runOptimizationFromUI() {
             batch: document.getElementById('toggle-batch')?.checked || false,
             momentum: document.getElementById('toggle-momentum')?.checked || false,
             adam: document.getElementById('toggle-adam')?.checked || false,
-            ballistic: document.getElementById('toggle-ballistic')?.checked || false
+            ballistic: document.getElementById('toggle-ballistic')?.checked || false,
+            ballistic_adam: document.getElementById('toggle-ballistic-adam')?.checked || false
         };
         
         // Build parameters for each enabled optimizer
@@ -471,7 +624,8 @@ async function runOptimizationFromUI() {
                 batch: currentParams.batch,
                 momentum: currentParams.momentum,
                 adam: currentParams.adam,
-                ballistic: currentParams.ballistic
+                ballistic: currentParams.ballistic,
+                ballistic_adam: currentParams.ballistic_adam
             },
             // Include manifold parameters if available
             manifold_params: window.getManifoldParameters ? window.getManifoldParameters() : {}

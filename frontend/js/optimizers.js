@@ -29,7 +29,8 @@ let enabledOptimizers = {
     batch: true,
     momentum: true,
     adam: true,
-    ballistic: true
+    ballistic: true,
+    ballistic_adam: true
 };
 
 // Colors for each optimizer
@@ -38,7 +39,8 @@ const OPTIMIZER_COLORS = {
     batch: 0x4444ff,
     momentum: 0x44ff44,
     adam: 0xff8800,
-    ballistic: 0xff00ff
+    ballistic: 0xff00ff,
+    ballistic_adam: 0x00ffff
 };
 
 // Create ball for an optimizer
@@ -179,9 +181,9 @@ function updateTrajectoryLine(name, trajectory) {
         return;
     }
     
-    // Use different coordinate conversion for ballistic optimizer
+    // Use different coordinate conversion for ballistic optimizers
     let points;
-    if (name === 'ballistic') {
+    if (name === 'ballistic' || name === 'ballistic_adam') {
         points = trajectory.map(([x, y, z_world]) => ballisticToWorldCoords(x, y, z_world));
     } else {
         points = trajectory.map(([x, y, loss]) => paramsToWorldCoords(x, y, loss));
@@ -208,9 +210,9 @@ function setBallPosition(name, x, y, loss_or_z) {
         return;
     }
     
-    // Use different coordinate conversion for ballistic optimizer
+    // Use different coordinate conversion for ballistic optimizers
     let worldPos;
-    if (name === 'ballistic') {
+    if (name === 'ballistic' || name === 'ballistic_adam') {
         worldPos = ballisticToWorldCoords(x, y, loss_or_z);
     } else {
         worldPos = paramsToWorldCoords(x, y, loss_or_z);
@@ -235,7 +237,7 @@ async function runOptimization(params) {
         const data = await response.json();
         
         // Clear trajectories for disabled optimizers
-        const allOptimizers = ['sgd', 'batch', 'momentum', 'adam', 'ballistic'];
+        const allOptimizers = ['sgd', 'batch', 'momentum', 'adam', 'ballistic', 'ballistic_adam'];
         allOptimizers.forEach(name => {
             if (!data[name]) {
                 // Clear trajectory for disabled optimizer
@@ -254,7 +256,7 @@ async function runOptimization(params) {
         window.currentTrajectories = data; // Make globally accessible
         
         // Update trajectory lines only for actual optimizer names
-        const validOptimizers = ['sgd', 'batch', 'momentum', 'adam', 'ballistic'];
+        const validOptimizers = ['sgd', 'batch', 'momentum', 'adam', 'ballistic', 'ballistic_adam'];
         Object.keys(data)
             .filter(name => validOptimizers.includes(name))
             .forEach(name => {
@@ -446,7 +448,7 @@ function seekToStep(step) {
             const [x, y, z_or_loss] = trajectory[step];
             // Use appropriate coordinate conversion
             let pos;
-            if (name === 'ballistic') {
+            if (name === 'ballistic' || name === 'ballistic_adam') {
                 pos = ballisticToWorldCoords(x, y, z_or_loss);
             } else {
                 pos = paramsToWorldCoords(x, y, z_or_loss);

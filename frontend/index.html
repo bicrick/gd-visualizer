@@ -381,12 +381,120 @@
                             <span id="ballistic-bounce-threshold-value">0.050</span>
                         </div>
                         <div class="control-item">
+                            <label for="ballistic-ball-radius">
+                                Ball Radius:
+                                <i class="info-icon" data-tooltip="Radius of the ball. Larger radius prevents entering narrow valleys (exploration), smaller radius explores detailed features (exploitation).">i</i>
+                            </label>
+                            <input type="range" id="ballistic-ball-radius" min="0.01" max="2.0" step="0.01" value="0.05">
+                            <span id="ballistic-ball-radius-value">0.05</span>
+                        </div>
+                        <div class="control-item">
                             <label for="ballistic-max-iterations">
                                 Max Iterations:
                                 <i class="info-icon" data-tooltip="Maximum number of simulation steps. Acts as a safety limit for the physics simulation.">i</i>
                             </label>
                             <input type="range" id="ballistic-max-iterations" min="500" max="20000" step="500" value="10000">
                             <span id="ballistic-max-iterations-value">10000</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Ballistic Adam Optimizer -->
+                <div class="optimizer-section">
+                    <div class="optimizer-header">
+                        <label class="optimizer-toggle-label">
+                            <input type="checkbox" id="toggle-ballistic-adam" class="optimizer-toggle" checked>
+                            <span class="color-indicator" style="background-color: #00ffff;"></span>
+                            <span class="optimizer-name">Ballistic Adam</span>
+                        </label>
+                        <button class="expand-btn collapsed" data-target="ballistic-adam-params">▶</button>
+                    </div>
+                    <div class="optimizer-params collapsed" id="ballistic-adam-params">
+                        <div class="control-item">
+                            <label for="ballistic-adam-learning-rate">
+                                Learning Rate:
+                                <i class="info-icon" data-tooltip="Step size for gradient updates when on the ground. Controls how strongly gradients affect horizontal velocity.">i</i>
+                            </label>
+                            <input type="range" id="ballistic-adam-learning-rate" min="0.001" max="0.1" step="0.001" value="0.01">
+                            <span id="ballistic-adam-learning-rate-value">0.010</span>
+                        </div>
+                        <div class="control-item">
+                            <label for="ballistic-adam-momentum">
+                                Momentum:
+                                <i class="info-icon" data-tooltip="Fraction of previous velocity retained each step. High values (0.9-0.99) help build speed on slopes for takeoff.">i</i>
+                            </label>
+                            <input type="range" id="ballistic-adam-momentum" min="0" max="0.99" step="0.01" value="0.9">
+                            <span id="ballistic-adam-momentum-value">0.90</span>
+                        </div>
+                        <div class="control-item">
+                            <label for="ballistic-adam-gravity">
+                                Gravity:
+                                <i class="info-icon" data-tooltip="Gravitational acceleration for vertical motion. Controls how quickly the ball falls when airborne.">i</i>
+                            </label>
+                            <input type="range" id="ballistic-adam-gravity" min="0.0001" max="0.01" step="0.0001" value="0.001">
+                            <span id="ballistic-adam-gravity-value">0.0010</span>
+                        </div>
+                        <div class="control-item">
+                            <label for="ballistic-adam-dt">
+                                Time Step (dt):
+                                <i class="info-icon" data-tooltip="Physics simulation time step. Larger values mean bigger jumps in space/time per iteration.">i</i>
+                            </label>
+                            <input type="range" id="ballistic-adam-dt" min="0.1" max="2.0" step="0.1" value="1.0">
+                            <span id="ballistic-adam-dt-value">1.0</span>
+                        </div>
+                        <div class="control-item">
+                            <label for="ballistic-adam-max-air-steps">
+                                Max Air Steps:
+                                <i class="info-icon" data-tooltip="Maximum number of physics steps to simulate while airborne before landing must be found.">i</i>
+                            </label>
+                            <input type="range" id="ballistic-adam-max-air-steps" min="5" max="50" step="1" value="20">
+                            <span id="ballistic-adam-max-air-steps-value">20</span>
+                        </div>
+                        <div class="control-item">
+                            <label for="ballistic-adam-max-bisection-iters">
+                                Max Bisection Iterations:
+                                <i class="info-icon" data-tooltip="Maximum iterations for bisection search to find exact collision point when landing.">i</i>
+                            </label>
+                            <input type="range" id="ballistic-adam-max-bisection-iters" min="5" max="20" step="1" value="10">
+                            <span id="ballistic-adam-max-bisection-iters-value">10</span>
+                        </div>
+                        <div class="control-item">
+                            <label for="ballistic-adam-collision-tol">
+                                Collision Tolerance:
+                                <i class="info-icon" data-tooltip="Accuracy threshold for collision detection. Smaller values mean more precise landing point detection.">i</i>
+                            </label>
+                            <input type="range" id="ballistic-adam-collision-tol" min="0.00001" max="0.01" step="0.00001" value="0.001">
+                            <span id="ballistic-adam-collision-tol-value">1e-3</span>
+                        </div>
+                        <div class="control-item">
+                            <label>
+                                <input type="checkbox" id="ballistic-adam-use-convergence" checked>
+                                Run Until Convergence
+                            </label>
+                        </div>
+                        <div class="control-item hidden" id="ballistic-adam-iterations-control">
+                            <label for="ballistic-adam-iterations">
+                                Iterations:
+                                <i class="info-icon" data-tooltip="Number of optimization steps to perform. Each step may involve multiple air steps if flying.">i</i>
+                            </label>
+                            <input type="range" id="ballistic-adam-iterations" min="50" max="500" step="10" value="100">
+                            <span id="ballistic-adam-iterations-value">100</span>
+                        </div>
+                        <div class="control-item" id="ballistic-adam-max-iterations-control">
+                            <label for="ballistic-adam-max-iterations">
+                                Max Iterations:
+                                <i class="info-icon" data-tooltip="Maximum number of iterations when using convergence mode. Acts as a safety limit.">i</i>
+                            </label>
+                            <input type="range" id="ballistic-adam-max-iterations" min="500" max="20000" step="500" value="10000">
+                            <span id="ballistic-adam-max-iterations-value">10000</span>
+                        </div>
+                        <div class="control-item" id="ballistic-adam-convergence-threshold-control">
+                            <label for="ballistic-adam-convergence-threshold">
+                                Convergence Threshold:
+                                <i class="info-icon" data-tooltip="Stops optimization when gradient magnitude falls below this value (checked when on ground).">i</i>
+                            </label>
+                            <input type="range" id="ballistic-adam-convergence-threshold" min="0.000001" max="0.01" step="0.000001" value="0.0001">
+                            <span id="ballistic-adam-convergence-threshold-value">1e-4</span>
                         </div>
                     </div>
                 </div>

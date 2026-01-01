@@ -12,8 +12,8 @@ html, body {
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    background: #1a1a1a;
-    color: #e0e0e0;
+    background: #ffffff;
+    color: #333333;
 }
 
 #container {
@@ -26,8 +26,8 @@ body {
 #sidebar {
     width: 300px;
     height: 100vh;
-    background: #2a2a2a;
-    border-right: 1px solid #3a3a3a;
+    background: #f5f5f5;
+    border-right: 1px solid #e0e0e0;
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
@@ -36,15 +36,15 @@ body {
 
 .sidebar-header {
     padding: 20px;
-    background: #2a2a2a;
-    border-bottom: 1px solid #3a3a3a;
+    background: #f5f5f5;
+    border-bottom: 1px solid #e0e0e0;
     flex-shrink: 0;
 }
 
 .sidebar-header h1 {
     font-size: 24px;
     margin: 0;
-    color: #ffffff;
+    color: #1a1a1a;
     text-align: center;
 }
 
@@ -61,35 +61,35 @@ body {
 }
 
 .sidebar-content::-webkit-scrollbar-track {
-    background: #1a1a1a;
+    background: #ffffff;
     border-radius: 0;
 }
 
 .sidebar-content::-webkit-scrollbar-thumb {
-    background: #4a4a4a;
+    background: #c0c0c0;
     border-radius: 5px;
-    border: 2px solid #1a1a1a;
+    border: 2px solid #ffffff;
     transition: background 0.2s ease;
 }
 
 .sidebar-content::-webkit-scrollbar-thumb:hover {
-    background: #5a5a5a;
+    background: #a0a0a0;
 }
 
 .sidebar-content::-webkit-scrollbar-thumb:active {
-    background: #6a6a6a;
+    background: #909090;
 }
 
 /* Custom Scrollbar for Sidebar Content - Firefox */
 .sidebar-content {
     scrollbar-width: thin;
-    scrollbar-color: #4a4a4a #1a1a1a;
+    scrollbar-color: #c0c0c0 #ffffff;
 }
 
 .control-group {
     margin-bottom: 25px;
     padding-bottom: 20px;
-    border-bottom: 1px solid #3a3a3a;
+    border-bottom: 1px solid #e0e0e0;
 }
 
 .control-group:last-child {
@@ -99,7 +99,7 @@ body {
 .control-group h2 {
     font-size: 16px;
     margin-bottom: 15px;
-    color: #ffffff;
+    color: #1a1a1a;
     font-weight: 600;
 }
 
@@ -111,7 +111,7 @@ body {
     display: block;
     margin-bottom: 5px;
     font-size: 14px;
-    color: #b0b0b0;
+    color: #666666;
 }
 
 .control-item input[type="range"] {
@@ -122,10 +122,10 @@ body {
 .control-item input[type="number"] {
     width: 100%;
     padding: 8px;
-    background: #1a1a1a;
-    border: 1px solid #3a3a3a;
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
     border-radius: 4px;
-    color: #e0e0e0;
+    color: #333333;
     font-size: 14px;
 }
 
@@ -151,29 +151,29 @@ body {
 .button-group button {
     flex: 1;
     padding: 8px 12px;
-    background: #2a2a2a;
-    border: 1px solid #3a3a3a;
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
     border-radius: 5px;
-    color: #e0e0e0;
+    color: #333333;
     font-size: 13px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     white-space: nowrap;
 }
 
 .button-group button:hover {
-    background: #333333;
+    background: #f0f0f0;
     border-color: #4a9eff;
-    color: #ffffff;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    color: #1a1a1a;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 .button-group button:active {
-    background: #252525;
+    background: #e8e8e8;
     transform: translateY(1px);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 button {
@@ -232,7 +232,7 @@ button.active:hover {
     border-radius: 50%;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .media-btn.primary {
@@ -251,11 +251,11 @@ button.active:hover {
 }
 
 .media-btn.secondary {
-    background: linear-gradient(135deg, #555555 0%, #444444 100%);
+    background: linear-gradient(135deg, #e0e0e0 0%, #d0d0d0 100%);
 }
 
 .media-btn.secondary:hover:not(:disabled) {
-    background: linear-gradient(135deg, #666666 0%, #555555 100%);
+    background: linear-gradient(135deg, #d0d0d0 0%, #c0c0c0 100%);
     transform: scale(1.05);
 }
 
@@ -266,7 +266,7 @@ button.active:hover {
 .media-btn:disabled {
     opacity: 0.4;
     cursor: not-allowed;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
 }
 
 .media-btn .icon {
@@ -284,9 +284,9 @@ button.active:hover {
 .timeline-container {
     margin-top: 15px;
     padding: 14px;
-    background: #222222;
+    background: #f9f9f9;
     border-radius: 8px;
-    border: 1px solid #3a3a3a;
+    border: 1px solid #e0e0e0;
 }
 
 .slider-group {
@@ -303,7 +303,7 @@ button.active:hover {
     align-items: baseline;
     margin-bottom: 8px;
     font-size: 13px;
-    color: #b0b0b0;
+    color: #666666;
 }
 
 .slider-value {
@@ -317,11 +317,11 @@ button.active:hover {
 }
 
 #total-steps {
-    color: #808080;
+    color: #999999;
 }
 
 .separator {
-    color: #606060;
+    color: #999999;
     margin: 0 3px;
 }
 
@@ -344,9 +344,9 @@ button.active:hover {
 .timeline-scrubber::-webkit-slider-runnable-track {
     width: 100%;
     height: 4px;
-    background: #1a1a1a;
+    background: #ffffff;
     border-radius: 2px;
-    border: 1px solid #3a3a3a;
+    border: 1px solid #e0e0e0;
 }
 
 .timeline-scrubber::-webkit-slider-thumb {
@@ -375,9 +375,9 @@ button.active:hover {
 .timeline-scrubber::-moz-range-track {
     width: 100%;
     height: 4px;
-    background: #1a1a1a;
+    background: #ffffff;
     border-radius: 2px;
-    border: 1px solid #3a3a3a;
+    border: 1px solid #e0e0e0;
 }
 
 .timeline-scrubber::-moz-range-thumb {
@@ -420,15 +420,15 @@ button.active:hover {
 
 .optimizer-section {
     margin-bottom: 12px;
-    background: #222222;
-    border: 1px solid #3a3a3a;
+    background: #f9f9f9;
+    border: 1px solid #e0e0e0;
     border-radius: 8px;
     overflow: hidden;
     transition: border-color 0.2s ease;
 }
 
 .optimizer-section:hover {
-    border-color: #4a4a4a;
+    border-color: #d0d0d0;
 }
 
 .optimizer-header {
@@ -436,7 +436,7 @@ button.active:hover {
     align-items: center;
     padding: 14px 16px;
     padding-right: 40px;
-    background: #2a2a2a;
+    background: #f5f5f5;
     cursor: pointer;
     user-select: none;
     transition: background 0.2s ease;
@@ -444,7 +444,7 @@ button.active:hover {
 }
 
 .optimizer-header:hover {
-    background: #2f2f2f;
+    background: #eeeeee;
 }
 
 .optimizer-toggle-label {
@@ -467,7 +467,7 @@ button.active:hover {
 .optimizer-name {
     font-size: 14px;
     font-weight: 600;
-    color: #e0e0e0;
+    color: #333333;
     flex: 1;
 }
 
@@ -475,9 +475,9 @@ button.active:hover {
     width: 16px;
     height: 16px;
     border-radius: 50%;
-    border: 2px solid rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(0, 0, 0, 0.1);
     flex-shrink: 0;
-    box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
 }
 
 .expand-btn {
@@ -490,7 +490,7 @@ button.active:hover {
     padding: 0;
     background: transparent;
     border: none;
-    color: #808080;
+    color: #666666;
     font-size: 10px;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -501,17 +501,17 @@ button.active:hover {
 }
 
 .expand-btn:hover {
-    color: #ffffff;
+    color: #1a1a1a;
     transform: translateY(-50%) scale(1.1);
 }
 
 .optimizer-params {
     padding: 16px;
-    border-top: 1px solid #333333;
+    border-top: 1px solid #e0e0e0;
     max-height: 1000px;
     overflow: hidden;
     transition: max-height 0.3s ease-out, padding 0.3s ease-out;
-    background: #1a1a1a;
+    background: #ffffff;
 }
 
 .optimizer-params.collapsed {
@@ -531,14 +531,14 @@ button.active:hover {
 
 .optimizer-params .control-item label {
     font-size: 13px;
-    color: #a0a0a0;
+    color: #777777;
     font-weight: 500;
 }
 
 #canvas-container {
     flex: 1;
     position: relative;
-    background: #0a0a0a;
+    background: #fafafa;
     min-width: 0;
     min-height: 0;
     max-width: 100%;
@@ -551,13 +551,14 @@ button.active:hover {
     position: absolute;
     bottom: 20px;
     right: 20px;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(255, 255, 255, 0.9);
     padding: 8px 12px;
     border-radius: 4px;
     font-size: 11px;
-    color: #aaaaaa;
+    color: #666666;
     pointer-events: none;
-    opacity: 0.7;
+    opacity: 0.9;
+    border: 1px solid #e0e0e0;
 }
 
 .hidden {
@@ -576,17 +577,17 @@ input[type="checkbox"] {
     -webkit-appearance: none;
     width: 18px;
     height: 18px;
-    border: 2px solid #4a4a4a;
+    border: 2px solid #d0d0d0;
     border-radius: 4px;
-    background: #1a1a1a;
+    background: #ffffff;
     cursor: pointer;
     position: relative;
     transition: all 0.2s ease;
 }
 
 .optimizer-toggle-label input[type="checkbox"]:hover {
-    border-color: #5a9eff;
-    background: #252525;
+    border-color: #4a9eff;
+    background: #f8f8f8;
 }
 
 .optimizer-toggle-label input[type="checkbox"]:checked {
@@ -610,14 +611,14 @@ input[type="checkbox"] {
     position: absolute;
     top: 20px;
     left: 20px;
-    background: rgba(42, 42, 42, 0.95);
+    background: rgba(255, 255, 255, 0.95);
     border-radius: 8px;
-    border: 1px solid #3a3a3a;
+    border: 1px solid #e0e0e0;
     backdrop-filter: blur(10px);
     min-width: 300px;
     max-width: 400px;
     z-index: 100;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     overflow: hidden;
 }
 
@@ -632,11 +633,11 @@ input[type="checkbox"] {
 }
 
 .manifold-current:hover {
-    background: rgba(52, 52, 52, 0.95);
+    background: rgba(245, 245, 245, 0.95);
 }
 
 .manifold-current.active {
-    background: rgba(52, 52, 52, 0.95);
+    background: rgba(245, 245, 245, 0.95);
 }
 
 .manifold-info {
@@ -648,7 +649,7 @@ input[type="checkbox"] {
 
 .manifold-label {
     font-size: 13px;
-    color: #b0b0b0;
+    color: #666666;
     font-weight: 600;
 }
 
@@ -659,7 +660,7 @@ input[type="checkbox"] {
 }
 
 .dropdown-arrow {
-    color: #808080;
+    color: #666666;
     font-size: 10px;
     transition: transform 0.2s ease;
     margin-left: 10px;
@@ -673,8 +674,8 @@ input[type="checkbox"] {
     max-height: 400px;
     overflow-y: auto;
     overflow-x: hidden;
-    background: rgba(26, 26, 26, 0.98);
-    border-top: 1px solid #3a3a3a;
+    background: rgba(255, 255, 255, 0.98);
+    border-top: 1px solid #e0e0e0;
     opacity: 1;
     transform: scaleY(1);
     transform-origin: top;
@@ -696,23 +697,23 @@ input[type="checkbox"] {
 }
 
 .manifold-dropdown-list::-webkit-scrollbar-track {
-    background: #1a1a1a;
+    background: #ffffff;
 }
 
 .manifold-dropdown-list::-webkit-scrollbar-thumb {
-    background: #4a4a4a;
+    background: #c0c0c0;
     border-radius: 4px;
 }
 
 .manifold-dropdown-list::-webkit-scrollbar-thumb:hover {
-    background: #5a5a5a;
+    background: #a0a0a0;
 }
 
 .manifold-option {
     padding: 12px 15px;
     cursor: pointer;
     transition: background 0.2s ease;
-    border-bottom: 1px solid #2a2a2a;
+    border-bottom: 1px solid #f0f0f0;
 }
 
 .manifold-option:last-child {
@@ -730,13 +731,13 @@ input[type="checkbox"] {
 .manifold-option-name {
     font-size: 14px;
     font-weight: 600;
-    color: #e0e0e0;
+    color: #333333;
     margin-bottom: 4px;
 }
 
 .manifold-option-description {
     font-size: 12px;
-    color: #9a9a9a;
+    color: #777777;
     line-height: 1.4;
 }
 
@@ -745,14 +746,14 @@ input[type="checkbox"] {
     position: absolute;
     top: 20px;
     right: 20px;
-    background: rgba(42, 42, 42, 0.95);
+    background: rgba(255, 255, 255, 0.95);
     border-radius: 8px;
-    border: 1px solid #3a3a3a;
+    border: 1px solid #e0e0e0;
     backdrop-filter: blur(10px);
     min-width: 250px;
     max-width: 350px;
     z-index: 100;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     overflow: hidden;
 }
 
@@ -767,9 +768,9 @@ input[type="checkbox"] {
     padding: 12px 15px;
     font-size: 13px;
     font-weight: 600;
-    color: #b0b0b0;
-    background: rgba(26, 26, 26, 0.98);
-    border-bottom: 1px solid #3a3a3a;
+    color: #666666;
+    background: rgba(245, 245, 245, 0.98);
+    border-bottom: 1px solid #e0e0e0;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     cursor: pointer;
@@ -778,12 +779,12 @@ input[type="checkbox"] {
 }
 
 .params-header:hover {
-    background: rgba(32, 32, 32, 0.98);
+    background: rgba(238, 238, 238, 0.98);
 }
 
 .params-toggle {
     font-size: 10px;
-    color: #808080;
+    color: #666666;
     transition: transform 0.2s ease;
 }
 
@@ -813,7 +814,7 @@ input[type="checkbox"] {
     align-items: center;
     margin-bottom: 6px;
     font-size: 12px;
-    color: #d0d0d0;
+    color: #555555;
 }
 
 .param-name {
@@ -829,7 +830,7 @@ input[type="checkbox"] {
 .param-slider {
     width: 100%;
     height: 4px;
-    background: #3a3a3a;
+    background: #e0e0e0;
     outline: none;
     border-radius: 2px;
     -webkit-appearance: none;
@@ -844,7 +845,7 @@ input[type="checkbox"] {
     cursor: pointer;
     border-radius: 50%;
     border: 2px solid #ffffff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .param-slider::-moz-range-thumb {
@@ -854,7 +855,7 @@ input[type="checkbox"] {
     cursor: pointer;
     border-radius: 50%;
     border: 2px solid #ffffff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .param-slider::-webkit-slider-thumb:hover {
@@ -875,8 +876,8 @@ input[type="checkbox"] {
     width: 14px;
     height: 14px;
     margin-left: 6px;
-    background: #3a3a3a;
-    color: #b0b0b0;
+    background: #e0e0e0;
+    color: #666666;
     border-radius: 50%;
     font-size: 10px;
     font-weight: bold;
@@ -900,16 +901,16 @@ input[type="checkbox"] {
 
 .tooltip-popup {
     position: fixed;
-    background: rgba(42, 42, 42, 0.98);
-    color: #e0e0e0;
+    background: rgba(255, 255, 255, 0.98);
+    color: #333333;
     padding: 10px 12px;
     border-radius: 6px;
     font-size: 12px;
     line-height: 1.4;
     width: 220px;
     text-align: left;
-    border: 1px solid #4a4a4a;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    border: 1px solid #d0d0d0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     z-index: 99999;
     pointer-events: none;
     opacity: 0;
@@ -929,7 +930,7 @@ input[type="checkbox"] {
     left: 50%;
     transform: translateX(-50%);
     border: 6px solid transparent;
-    border-top-color: rgba(42, 42, 42, 0.98);
+    border-top-color: rgba(255, 255, 255, 0.98);
 }
 
 /* Adjust label styling to accommodate info icon */
@@ -938,12 +939,12 @@ input[type="checkbox"] {
     align-items: center;
     margin-bottom: 5px;
     font-size: 14px;
-    color: #b0b0b0;
+    color: #666666;
 }
 
 .optimizer-params .control-item label {
     font-size: 13px;
-    color: #a0a0a0;
+    color: #777777;
     font-weight: 500;
     display: flex;
     align-items: center;
@@ -956,11 +957,11 @@ input[type="checkbox"] {
     right: 20px;
     width: 350px;
     height: 350px;
-    background: rgba(42, 42, 42, 0.95);
-    border: 1px solid #3a3a3a;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid #e0e0e0;
     border-radius: 8px;
     backdrop-filter: blur(10px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     z-index: 100;
     display: flex;
     flex-direction: column;
@@ -973,21 +974,21 @@ input[type="checkbox"] {
 
 .classifier-header {
     padding: 12px 15px;
-    background: #2a2a2a;
-    border-bottom: 1px solid #3a3a3a;
+    background: #f5f5f5;
+    border-bottom: 1px solid #e0e0e0;
 }
 
 .classifier-header h3 {
     margin: 0;
     font-size: 16px;
-    color: #ffffff;
+    color: #1a1a1a;
     font-weight: 600;
 }
 
 .classifier-header p {
     margin: 4px 0 0 0;
     font-size: 12px;
-    color: #b0b0b0;
+    color: #666666;
 }
 
 #classifier-canvas {

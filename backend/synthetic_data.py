@@ -85,3 +85,4 @@ def compute_gradient_on_data(loss_func, data_point, h=1e-5):
     
     return np.array([grad_x, grad_y])
 
+

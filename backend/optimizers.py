@@ -260,19 +260,20 @@ def adam_optimizer(loss_func, initial_params, learning_rate, n_iterations,
 
 
 def find_collision_newton(x0, y0, z0, vx0, vy0, vz0, gravity, dt, loss_func, 
-                         gradient_hint=None, loss_hint=None, max_iters=4):
+                         gradient_hint=None, loss_hint=None, ball_radius=0.05, max_iters=4):
     """
     Find collision using Newton's method with gradient prediction.
     Much faster than bisection: 2-4 evaluations instead of 15.
     
     Args:
-        x0, y0, z0: Initial position at start of time step
+        x0, y0, z0: Initial position at start of time step (center of ball)
         vx0, vy0, vz0: Initial velocity at start of time step
         gravity: Gravitational acceleration
         dt: Full time step
         loss_func: Loss function defining the surface
         gradient_hint: Gradient at previous point (for prediction)
         loss_hint: Loss at previous point (for prediction)
+        ball_radius: Radius of the ball (collision when bottom touches surface)
         max_iters: Maximum Newton iterations (default 4)
     
     Returns:
@@ -289,13 +290,14 @@ def find_collision_newton(x0, y0, z0, vx0, vy0, vz0, gravity, dt, loss_func,
     
     # Step 1: Predict collision time using gradient hint (if available)
     if gradient_hint is not None and loss_hint is not None:
-        # Solve analytically: z(t) = loss_hint + gradient · (xy(t) - xy0)
-        # z0 + vz0*t - 0.5*g*t^2 = loss_hint + grad_x*(vx0*t) + grad_y*(vy0*t)
-        # Rearranging: -0.5*g*t^2 + (vz0 - grad·v_xy)*t + (z0 - loss_hint) = 0
+        # Solve analytically: z_bottom(t) = loss_hint + gradient · (xy(t) - xy0)
+        # where z_bottom = z_center - ball_radius
+        # (z0 - ball_radius) + vz0*t - 0.5*g*t^2 = loss_hint + grad_x*(vx0*t) + grad_y*(vy0*t)
+        # Rearranging: -0.5*g*t^2 + (vz0 - grad·v_xy)*t + (z0 - ball_radius - loss_hint) = 0
         
         a = -0.5 * gravity
         b = vz0 - np.dot(gradient_hint, [vx0, vy0])
-        c = z0 - loss_hint
+        c = (z0 - ball_radius) - loss_hint
         
         # Solve quadratic
         discriminant = b**2 - 4*a*c
@@ -316,15 +318,16 @@ def find_collision_newton(x0, y0, z0, vx0, vy0, vz0, gravity, dt, loss_func,
         t_predicted = dt / 2  # No hint - start at midpoint
     
     # Quick check: is there actually a collision?
+    # Check if BOTTOM of ball (z_center - ball_radius) crosses surface
     x_start, y_start, z_start = position_at_time(0)
     loss_start = loss_func(x_start, y_start)
-    if z_start - loss_start < 0:
+    if (z_start - ball_radius) - loss_start < 0:
         # Started below surface - shouldn't happen but handle it
         return 0, x0, y0, z0, compute_gradient(loss_func, x0, y0)
     
     x_end, y_end, z_end = position_at_time(dt)
     loss_end = loss_func(x_end, y_end)
-    if z_end - loss_end > 0:
+    if (z_end - ball_radius) - loss_end > 0:
         # Stayed above surface entire time - no collision
         return None
     
@@ -340,8 +343,9 @@ def find_collision_newton(x0, y0, z0, vx0, vy0, vz0, gravity, dt, loss_func,
         loss_t = loss_func(x_t, y_t)
         gradient_col = compute_gradient(loss_func, x_t, y_t)
         
-        # Function: f(t) = z(t) - L(x(t), y(t))
-        f = z_t - loss_t
+        # Function: f(t) = z_bottom(t) - L(x(t), y(t))
+        # where z_bottom = z_center - ball_radius
+        f = (z_t - ball_radius) - loss_t
         
         # Derivative: f'(t) = dz/dt - dL/dt
         # dz/dt = vz0 - gravity*t
@@ -378,8 +382,8 @@ def find_collision_newton(x0, y0, z0, vx0, vy0, vz0, gravity, dt, loss_func,
     # Make sure we actually have a collision (not just ended at dt)
     if t >= dt - 1e-6:
         # Reached end of timestep without clear collision
-        # Check if we're actually colliding
-        if z_col - loss_func(x_col, y_col) > 0.01:
+        # Check if we're actually colliding (check bottom of ball)
+        if (z_col - ball_radius) - loss_func(x_col, y_col) > 0.01:
             return None  # Still above surface
     
     return t, x_col, y_col, z_col, gradient_col
@@ -387,7 +391,7 @@ def find_collision_newton(x0, y0, z0, vx0, vy0, vz0, gravity, dt, loss_func,
 
 def ballistic_gradient_descent(loss_func, initial_params, drop_height=5.0, 
                                 gravity=1.0, elasticity=0.8, bounce_threshold=0.05,
-                                dt=0.01, max_iterations=10000, seed=42, bounds=None):
+                                ball_radius=0.05, dt=0.01, max_iterations=10000, seed=42, bounds=None):
     """
     Ballistic Gradient Descent - physics-based optimization by dropping a ball
     from a height and letting it bounce on the loss landscape.
@@ -399,6 +403,7 @@ def ballistic_gradient_descent(loss_func, initial_params, drop_height=5.0,
         gravity: Gravitational acceleration constant
         elasticity: Energy retention coefficient (0-1) after each bounce
         bounce_threshold: Minimum bounce height before stopping
+        ball_radius: Radius of the ball (bottom collides with surface, not center)
         dt: Time step for physics simulation
         max_iterations: Maximum number of simulation steps
         seed: Random seed
@@ -406,7 +411,7 @@ def ballistic_gradient_descent(loss_func, initial_params, drop_height=5.0,
     
     Returns:
         List of (x, y, z_world) tuples representing the 3D trajectory
-        where z_world is the actual 3D height (not loss value)
+        where z_world is the actual 3D height of ball center (not loss value)
     """
     np.random.seed(seed)
     
@@ -456,7 +461,8 @@ def ballistic_gradient_descent(loss_func, initial_params, drop_height=5.0,
         # Check for collision with surface using Newton's method
         collision_result = find_collision_newton(x_prev, y_prev, z_prev, vx_prev, vy_prev, vz_prev, 
                                                  gravity, dt, loss_func, 
-                                                 gradient_hint=gradient_hint, loss_hint=loss_hint)
+                                                 gradient_hint=gradient_hint, loss_hint=loss_hint,
+                                                 ball_radius=ball_radius)
         
         if collision_result is not None and vz_prev < 0:  # Only bounce when moving downward
             # Collision detected - unpack results (now includes gradient!)
@@ -539,6 +545,190 @@ def ballistic_gradient_descent(loss_func, initial_params, drop_height=5.0,
         surface_height = loss_func(x, y)
         if velocity_magnitude < 0.001 and abs(z - surface_height) < 0.01:
             break
+    
+    return trajectory
+
+
+def ballistic_adam_optimizer(loss_func, initial_params, learning_rate=0.01, momentum=0.9,
+                              gravity=0.001, dt=1.0, max_air_steps=20, 
+                              max_bisection_iters=10, collision_tol=1e-3,
+                              n_iterations=100, dataset=None, seed=42, 
+                              convergence_threshold=1e-6, max_iterations=10000, bounds=None):
+    """
+    Ballistic Adam Optimizer - rolls like SGD with momentum until it gains enough
+    speed on a slope to become airborne, then follows ballistic physics.
+    
+    Physics Analog:
+    - "Rolling": SGD Momentum on the surface, computing gradients to update velocity
+    - "Takeoff": If predicted height > actual loss (ground drops away), go airborne
+    - "Flying": Pure ballistic physics with gravity, no gradient computation
+    - "Landing": Bisection search for exact collision point, inelastic collision (v_h = 0)
+    
+    Args:
+        loss_func: Loss function
+        initial_params: Starting point [x, y]
+        learning_rate: Step size for gradient updates (when on ground)
+        momentum: Momentum coefficient (0-1) for horizontal velocity
+        gravity: Gravitational acceleration (affects vertical motion)
+        dt: Time step for physics simulation
+        max_air_steps: Maximum iterations to simulate while airborne
+        max_bisection_iters: Maximum bisection iterations for collision detection
+        collision_tol: Tolerance for collision detection
+        n_iterations: Number of optimization steps (or None for convergence-based)
+        dataset: Training data (not used, kept for API compatibility)
+        seed: Random seed
+        convergence_threshold: Stop if gradient magnitude is below this
+        max_iterations: Maximum iterations for convergence mode
+        bounds: Tuple of (min, max) for parameter bounds, or None for no bounds
+    
+    Returns:
+        List of (x, y, z_world) tuples representing the 3D trajectory
+        where z_world is the actual 3D height (loss value), similar to ballistic optimizer
+    """
+    np.random.seed(seed)
+    
+    params = np.array(initial_params, dtype=float)
+    velocity = np.zeros_like(params)  # Horizontal velocity (momentum)
+    
+    # Vertical state
+    h = loss_func(params[0], params[1])  # Current height (loss)
+    v_h = 0.0  # Vertical velocity
+    prev_loss = h
+    flying = False
+    
+    trajectory = []
+    trajectory.append((float(params[0]), float(params[1]), float(h)))
+    
+    # Use convergence mode if n_iterations is None or negative
+    use_convergence = n_iterations is None or n_iterations < 0
+    iterations = max_iterations if use_convergence else n_iterations
+    
+    for iteration in range(iterations):
+        # Compute gradient only when on ground
+        if not flying:
+            grad = compute_gradient(loss_func, params[0], params[1])
+            
+            # Check convergence
+            if use_convergence and np.linalg.norm(grad) < convergence_threshold:
+                break
+            
+            # Update horizontal velocity with momentum (SGD momentum style)
+            velocity = momentum * velocity - learning_rate * grad
+        
+        # Physics simulation loop
+        air_steps = 0
+        while air_steps < max_air_steps:
+            air_steps += 1
+            
+            # Save state before step
+            params_old = params.copy()
+            h_old = h
+            v_h_old = v_h
+            
+            # Take one physics step (horizontal movement with current velocity)
+            params_new = params + velocity
+            
+            # Check bounds
+            if bounds is not None:
+                bounds_min, bounds_max = bounds
+                if (params_new[0] < bounds_min or params_new[0] > bounds_max or 
+                    params_new[1] < bounds_min or params_new[1] > bounds_max):
+                    # Hit boundary, stop here
+                    break
+            
+            # Predict height using ballistic physics
+            h_pred = h + v_h * dt - 0.5 * gravity * (dt ** 2)
+            v_h_pred = v_h - gravity * dt
+            
+            # Evaluate actual loss at new position
+            loss_new = loss_func(params_new[0], params_new[1])
+            
+            # Check for collision/penetration
+            penetration = h_pred - loss_new
+            
+            if penetration > 0:
+                # No collision: we're above the surface
+                if not flying:
+                    flying = True
+                
+                # Accept the move
+                params = params_new
+                h = h_pred
+                v_h = v_h_pred
+                prev_loss = loss_new
+                
+                # Record position (use h_pred as z_world for smooth arcs)
+                trajectory.append((float(params[0]), float(params[1]), float(h)))
+                
+                # Continue flying
+                continue
+            else:
+                # Collision detected: h_pred <= loss (penetrated surface)
+                if flying:
+                    # We were flying and hit ground - use bisection to find exact point
+                    t_low = 0.0
+                    t_high = 1.0
+                    
+                    for _ in range(max_bisection_iters):
+                        t_mid = (t_low + t_high) / 2.0
+                        
+                        # Interpolate parameters
+                        params_mid = params_old + t_mid * (params_new - params_old)
+                        
+                        # Predict height at t_mid
+                        t_elapsed = t_mid * dt
+                        h_pred_mid = h_old + v_h_old * t_elapsed - 0.5 * gravity * (t_elapsed ** 2)
+                        
+                        # Evaluate actual loss
+                        loss_mid = loss_func(params_mid[0], params_mid[1])
+                        
+                        # Check which side of surface
+                        penetration_mid = h_pred_mid - loss_mid
+                        
+                        if penetration_mid > 0:
+                            t_low = t_mid  # Still above, collision is later
+                        else:
+                            t_high = t_mid  # Below, collision is earlier
+                        
+                        if abs(penetration_mid) < collision_tol:
+                            break
+                    
+                    # Land at collision point
+                    t_collision = t_mid
+                    params = params_old + t_collision * (params_new - params_old)
+                    loss_collision = loss_func(params[0], params[1])
+                    
+                    # Inelastic collision: zero vertical velocity, keep horizontal
+                    h = loss_collision
+                    v_h = 0.0
+                    prev_loss = loss_collision
+                    flying = False
+                    
+                    trajectory.append((float(params[0]), float(params[1]), float(h)))
+                    
+                    # Exit air loop, will compute fresh gradients on next iteration
+                    break
+                else:
+                    # We were on ground and stayed on ground (normal rolling)
+                    params = params_new
+                    h = loss_new
+                    
+                    # Update vertical velocity based on slope
+                    dh = loss_new - prev_loss
+                    v_h = dh / dt
+                    prev_loss = loss_new
+                    
+                    trajectory.append((float(params[0]), float(params[1]), float(h)))
+                    
+                    # Exit air loop, continue to next iteration
+                    break
+        
+        # Check if we escaped bounds during air simulation
+        if bounds is not None:
+            bounds_min, bounds_max = bounds
+            if (params[0] < bounds_min or params[0] > bounds_max or 
+                params[1] < bounds_min or params[1] > bounds_max):
+                break
     
     return trajectory
 

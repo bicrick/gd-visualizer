@@ -19,7 +19,8 @@ from optimizers import (
     batch_gradient_descent,
     momentum_gradient_descent,
     adam_optimizer,
-    ballistic_gradient_descent
+    ballistic_gradient_descent,
+    ballistic_adam_optimizer
 )
 
 # Determine the frontend path relative to this file
@@ -136,7 +137,8 @@ def optimize():
         'batch': True,
         'momentum': True,
         'adam': True,
-        'ballistic': True
+        'ballistic': True,
+        'ballistic_adam': True
     })
     
     # Get per-optimizer parameters, or fall back to global parameters
@@ -151,7 +153,7 @@ def optimize():
     default_max_iterations = int(data.get('max_iterations', 10000))
     
     # Helper function to get optimizer-specific params
-    def get_optimizer_params(optimizer_name, has_momentum=False, is_adam=False, is_ballistic=False):
+    def get_optimizer_params(optimizer_name, has_momentum=False, is_adam=False, is_ballistic=False, is_ballistic_adam=False):
         params = optimizer_params.get(optimizer_name, {})
         
         if is_ballistic:
@@ -161,8 +163,31 @@ def optimize():
                 'gravity': float(params.get('gravity', 1.0)),
                 'elasticity': float(params.get('elasticity', 0.8)),
                 'bounce_threshold': float(params.get('bounceThreshold', 0.05)),
+                'ball_radius': float(params.get('ballRadius', 0.05)),
                 'max_iterations': int(params.get('maxIterations', 10000))
             }
+            return result
+        
+        if is_ballistic_adam:
+            # Ballistic Adam uses both gradient and physics parameters
+            result = {
+                'learning_rate': float(params.get('learningRate', 0.01)),
+                'momentum': float(params.get('momentum', 0.9)),
+                'gravity': float(params.get('gravity', 0.001)),
+                'dt': float(params.get('dt', 1.0)),
+                'max_air_steps': int(params.get('maxAirSteps', 20)),
+                'max_bisection_iters': int(params.get('maxBisectionIters', 10)),
+                'collision_tol': float(params.get('collisionTol', 1e-3)),
+                'n_iterations': int(params.get('iterations', default_n_iterations)),
+                'convergence_threshold': float(params.get('convergenceThreshold', default_convergence_threshold)),
+                'max_iterations': int(params.get('maxIterations', default_max_iterations))
+            }
+            
+            # Handle convergence mode
+            use_convergence = params.get('useConvergence', default_use_convergence)
+            if use_convergence:
+                result['n_iterations'] = -1
+            
             return result
         
         learning_rate = float(params.get('learningRate', default_learning_rate))
@@ -290,8 +315,29 @@ def optimize():
             gravity=params['gravity'],
             elasticity=params['elasticity'],
             bounce_threshold=params['bounce_threshold'],
+            ball_radius=params['ball_radius'],
             max_iterations=params['max_iterations'],
             seed=seed,
+            bounds=bounds
+        )
+    
+    if enabled_optimizers.get('ballistic_adam', False):
+        params = get_optimizer_params('ballistic_adam', is_ballistic_adam=True)
+        result['ballistic_adam'] = ballistic_adam_optimizer(
+            actual_loss_function,
+            initial_params,
+            learning_rate=params['learning_rate'],
+            momentum=params['momentum'],
+            gravity=params['gravity'],
+            dt=params['dt'],
+            max_air_steps=params['max_air_steps'],
+            max_bisection_iters=params['max_bisection_iters'],
+            collision_tol=params['collision_tol'],
+            n_iterations=params['n_iterations'],
+            dataset=dataset,
+            seed=seed,
+            convergence_threshold=params['convergence_threshold'],
+            max_iterations=params['max_iterations'],
             bounds=bounds
         )
     

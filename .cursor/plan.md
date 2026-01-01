@@ -36,3 +36,4 @@ No frontend changes needed - visualization will automatically show the competing
 - **Ridge/saddle between them**
 - Optimizers get trapped in whichever valley they start near!
 
+

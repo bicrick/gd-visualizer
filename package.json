@@ -1,0 +1,38 @@
+{
+  "name": "gd-experiments",
+  "version": "1.0.0",
+  "description": "Gradient Descent Visualization with split frontend/backend architecture",
+  "scripts": {
+    "deploy": "npm run deploy:backend && npm run deploy:frontend",
+    "deploy:backend": "npm run build:docker && npm run push:docker && npm run deploy:image",
+    "deploy:backend:slow": "gcloud config set account patrickbrownai@gmail.com && gcloud config set project gd-visualizer && gcloud run deploy gd-experiments --source . --platform managed --region us-central1 --allow-unauthenticated --memory 512Mi --cpu 1 --timeout 300 --max-instances 1 --min-instances 0 --concurrency 80",
+    "build:docker": "docker build -t us-central1-docker.pkg.dev/gd-visualizer/cloud-run-source-deploy/gd-experiments:latest .",
+    "push:docker": "docker push us-central1-docker.pkg.dev/gd-visualizer/cloud-run-source-deploy/gd-experiments:latest",
+    "deploy:image": "gcloud config set account patrickbrownai@gmail.com && gcloud config set project gd-visualizer && gcloud run deploy gd-experiments --image us-central1-docker.pkg.dev/gd-visualizer/cloud-run-source-deploy/gd-experiments:latest --platform managed --region us-central1 --allow-unauthenticated --memory 512Mi --cpu 1 --timeout 300 --max-instances 1 --min-instances 0 --concurrency 80",
+    "deploy:frontend": "cd frontend && vercel --prod",
+    "dev": "npm run dev:backend & npm run dev:frontend",
+    "dev:backend": "cd backend && python app.py",
+    "dev:frontend": "cd frontend && npx serve -l 3000",
+    "test:backend": "curl https://gd-experiments-1031734458893.us-central1.run.app/api/health",
+    "test:frontend": "curl -I https://gd-visualizer.vercel.app",
+    "logs:backend": "gcloud run services logs read gd-experiments --region us-central1 --limit 50",
+    "status": "npm run status:backend && npm run status:frontend",
+    "status:backend": "gcloud run services describe gd-experiments --region us-central1 --format='value(status.url,spec.template.metadata.annotations.autoscaling\\.knative\\.dev/maxScale)'",
+    "status:frontend": "cd frontend && vercel domains ls"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/gd-experiments.git"
+  },
+  "keywords": [
+    "gradient-descent",
+    "visualization",
+    "machine-learning",
+    "optimization"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.2.1"
+  }
+}

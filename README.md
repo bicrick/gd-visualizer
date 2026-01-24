@@ -1,57 +1,122 @@
-# Gradient Descent Visualizer
+# Gradient Descent Experiments
 
-An interactive 3D visualization tool for comparing gradient descent optimization algorithms. Watch as different optimizers (SGD, Batch GD, and Momentum GD) navigate a loss landscape in real-time.
+Interactive 3D visualization of gradient descent optimization algorithms with various loss landscapes.
 
-![Gradient Descent Visualization](GD.png)
+## Architecture
 
-## What is this?
+- **Frontend**: Static HTML/CSS/JS hosted on Vercel
+- **Backend**: Flask API on Google Cloud Run (scales to zero)
+- **Cost**: ~$0-2/month with light usage
 
-This project visualizes how different gradient descent algorithms optimize towards local minima on a 3D loss surface. Each optimizer is represented as a colored ball that "rolls" down the landscape, allowing you to:
+## Quick Start
 
-- Compare optimization paths side-by-side
-- Adjust learning rates, momentum, and iterations in real-time
-- See how different starting positions affect convergence
-- Visualize trajectory trails to understand optimizer behavior
+### Prerequisites
 
-## Getting Started with Docker
+- Python 3.11+
+- Node.js 18+ (for npm scripts)
+- gcloud CLI (authenticated as patrickbrownai@gmail.com)
+- Vercel CLI
 
-1. **Start the application:**
+### Local Development
+
 ```bash
-docker-compose up --build
+# Install dependencies
+npm install
+pip install -r backend/requirements.txt
+
+# Run locally (backend on :5000, frontend on :3000)
+npm run dev
 ```
 
-2. **Open your browser:**
-Navigate to `http://localhost:8080`
+Visit http://localhost:3000 to see the frontend.
 
-3. **Stop the application:**
+### Deployment
+
 ```bash
-docker-compose down
+# Deploy both frontend and backend
+npm run deploy
+
+# Or deploy individually
+npm run deploy:backend   # Deploy to Cloud Run
+npm run deploy:frontend  # Deploy to Vercel
 ```
 
-That's it! The containerized setup handles both frontend and backend, eliminating any CORS issues.
+### Useful Commands
 
-## Usage
+```bash
+# Check deployment status
+npm run status
 
-Once the application is running:
-1. The 3D loss landscape will load automatically
-2. Adjust parameters (learning rate, momentum, iterations) using the control panel
-3. Set a starting position or use "Random Start"
-4. Click "Play" to watch the optimizers in action
-5. Use Play/Pause/Reset to control the animation
+# Test endpoints
+npm run test:backend
+npm run test:frontend
 
-## Tech Stack
+# View backend logs
+npm run logs:backend
+```
 
-- **Backend**: Python/Flask with NumPy for optimization computations
-- **Frontend**: JavaScript with Three.js for 3D rendering
+## Live URLs
 
-## Optimization Algorithms
+- **Production**: https://gd.bicrick.com
+- **Vercel**: https://gd-visualizer.vercel.app
+- **Backend API**: https://gd-experiments-1031734458893.us-central1.run.app/api
 
-This visualizer includes four gradient descent variants:
+## Features
 
-- **Stochastic Gradient Descent (SGD)**: Updates parameters using one sample at a time, leading to noisy but fast updates. Note: SGD is simulated in this visualization to demonstrate its characteristic noisy behavior.
+- 10+ different loss landscapes (Rosenbrock, Himmelbaum, Rastrigin, etc.)
+- 6 optimization algorithms (SGD, Batch GD, Momentum, Adam, Ballistic, Ballistic Adam)
+- Real-time 3D visualization with Three.js
+- Interactive parameter tuning
+- Dark/Light theme toggle
+- Rate limiting: 50 requests/hour per IP
 
-- **Batch Gradient Descent**: Computes gradients using the entire dataset, resulting in smooth, stable trajectories but slower convergence per step.
+## Project Structure
 
-- **Momentum Gradient Descent**: Accelerates convergence by accumulating a velocity vector in directions of persistent reduction, helping navigate ravines and flat regions more effectively.
+```
+.
+├── backend/                 # Flask API
+│   ├── app.py              # Main API server
+│   ├── loss_functions.py   # Loss landscape definitions
+│   ├── optimizers.py       # Optimization algorithms
+│   └── requirements.txt    # Python dependencies
+├── frontend/               # Static site
+│   ├── index.html
+│   ├── css/
+│   ├── js/
+│   └── vercel.json        # Vercel configuration
+├── Dockerfile             # Backend container
+├── .gcloudignore         # Cloud Run deployment exclusions
+└── package.json          # Deployment scripts
+```
 
-- **ADAM (Adaptive Moment Estimation)**: Combines momentum with adaptive learning rates for each parameter, automatically adjusting step sizes based on gradient history for efficient and robust optimization.
+## Cost Protection
+
+1. **Cloud Run**: max-instances=1, scales to zero when idle
+2. **Rate Limiting**: 50 requests/hour per IP
+3. **GCP Billing Alerts**: $5, $10, $20 thresholds
+
+## Local Development Setup
+
+### Backend Configuration
+
+When running locally, the backend uses PORT 5000. The frontend is configured to point to the production Cloud Run URL by default. To use local backend:
+
+1. Update `frontend/js/scene.js` line 18:
+```javascript
+window.API_BASE_URL = 'http://localhost:5000/api';
+```
+
+2. Run backend: `python backend/app.py`
+
+3. Serve frontend: `npx serve frontend -l 3000`
+
+## Technologies
+
+- **Frontend**: Three.js, Vanilla JavaScript
+- **Backend**: Flask, NumPy, PyTorch
+- **Hosting**: Vercel (frontend), Google Cloud Run (backend)
+- **Domain**: Squarespace DNS → Vercel
+
+## License
+
+MIT

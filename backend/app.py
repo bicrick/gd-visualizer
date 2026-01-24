@@ -2,8 +2,10 @@
 Flask API server for gradient descent visualization backend.
 """
 
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, request
 from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import os
 import numpy as np
 from loss_functions import (
@@ -23,33 +25,43 @@ from optimizers import (
     ballistic_adam_optimizer
 )
 
-# Determine the frontend path relative to this file
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FRONTEND_DIR = os.path.join(BASE_DIR, '..', 'frontend')
+app = Flask(__name__)
 
-app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path='')
-# Enable CORS for all routes and origins (though not needed when serving from same origin)
-CORS(app, resources={r"/api/*": {"origins": "*"}})
+# Enable CORS for Vercel frontend and local development
+CORS(app, resources={
+    r"/api/*": {
+        "origins": [
+            "https://gd.bicrick.com",
+            "https://gd-visualizer.vercel.app",
+            "https://gd-visualizer-n7t7jrq0e-bicricks-projects.vercel.app",
+            "http://localhost:3000",
+            "http://localhost:5000",
+            "http://127.0.0.1:5000"
+        ],
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type"]
+    }
+})
 
-# Serve frontend files
-@app.route('/')
-def index():
-    return send_from_directory(FRONTEND_DIR, 'index.html')
+# Initialize rate limiter - 50 requests per hour per IP
+limiter = Limiter(
+    app=app,
+    key_func=get_remote_address,
+    default_limits=["50 per hour"],
+    storage_uri="memory://"
+)
 
-@app.route('/favicon.ico')
-def favicon():
-    # Return a 204 No Content response to prevent favicon 404 errors
-    return '', 204
-
-@app.route('/<path:path>')
-def serve_static(path):
-    # Don't serve API routes as static files
-    if path.startswith('api/'):
-        return None
-    # Serve CSS, JS, and other static files
-    return send_from_directory(FRONTEND_DIR, path)
+# Rate limit error handler
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    return jsonify({
+        'error': 'rate_limit_exceeded',
+        'message': 'You have reached the demo rate limit (50 requests/hour). Run unlimited locally with Docker!',
+        'retry_after': str(e.description)
+    }), 429
 
 
+# API Routes - Backend only, no frontend serving
 @app.route('/api/landscape', methods=['GET'])
 def get_landscape():
     """
@@ -385,5 +397,7 @@ def health():
 
 if __name__ == '__main__':
     # Allow connections from any host when running in Docker
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # Use PORT environment variable for Cloud Run compatibility
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=False, host='0.0.0.0', port=port)
 

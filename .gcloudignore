@@ -1,0 +1,50 @@
+# This file specifies files that are *not* uploaded to Google Cloud
+# using gcloud. It follows the same syntax as .gitignore, with the addition of
+# "#!include" directives (which insert the entries of the given .gitignore-style
+# file at that point).
+
+# Git files
+.git/
+.gitignore
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.cursor/
+.idea/
+*.swp
+*.swo
+*~
+
+# Docker files (Cloud Run builds from source)
+docker-compose.yml
+Dockerfile.dev
+
+# Documentation and images
+README.md
+GD.png
+*.md
+
+# Test files
+test/
+tests/
+*_test.py
+test_*.py
+
+# Frontend files (deployed separately to Vercel)
+frontend/

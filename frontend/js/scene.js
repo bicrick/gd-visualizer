@@ -22,7 +22,10 @@ const API_BASE_URL = window.API_BASE_URL; // Also keep as const for this file
 function initScene() {
     // Scene
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xfafafa);
+    scene.background = new THREE.Color(0x0a0a0a);
+    
+    // Export scene globally for theme management
+    window.scene = scene;
     
     // Camera
     const container = document.getElementById('canvas-container');
@@ -67,7 +70,7 @@ function initScene() {
     scene.add(directionalLight2);
     
     // Grid helper
-    const gridHelper = new THREE.GridHelper(20, 20, 0xcccccc, 0xe8e8e8);
+    const gridHelper = new THREE.GridHelper(20, 20, 0x444444, 0x222222);
     scene.add(gridHelper);
     
     // Axes helper

@@ -1,0 +1,185 @@
+/**
+ * Optimizer section styles
+ */
+
+.optimizer-section {
+    margin-bottom: 12px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-primary);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color 0.2s ease;
+}
+
+.optimizer-section:hover {
+    border-color: var(--border-secondary);
+}
+
+.optimizer-header {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    padding-right: 40px;
+    background: var(--bg-secondary);
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s ease;
+    position: relative;
+}
+
+.optimizer-header:hover {
+    background: var(--bg-button-hover);
+}
+
+body[data-theme="dark"] .optimizer-header:hover {
+    background: #2f2f2f;
+}
+
+body[data-theme="light"] .optimizer-header:hover {
+    background: #eeeeee;
+}
+
+.optimizer-toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    flex: 1;
+    margin: 0;
+}
+
+.optimizer-toggle-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.optimizer-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    flex: 1;
+}
+
+.color-indicator {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid var(--shadow-light);
+    flex-shrink: 0;
+    box-shadow: 0 0 8px var(--shadow-medium);
+}
+
+body[data-theme="dark"] .color-indicator {
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+body[data-theme="light"] .color-indicator {
+    border: 2px solid rgba(0, 0, 0, 0.1);
+}
+
+.expand-btn {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.expand-btn:hover {
+    color: var(--text-heading);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.optimizer-params {
+    padding: 16px;
+    border-top: 1px solid var(--border-divider);
+    max-height: 1000px;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+    background: var(--bg-primary);
+}
+
+body[data-theme="dark"] .optimizer-params {
+    border-top: 1px solid #333333;
+}
+
+.optimizer-params.collapsed {
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    border-top: none;
+}
+
+.optimizer-params .control-item {
+    margin-bottom: 14px;
+}
+
+.optimizer-params .control-item:last-child {
+    margin-bottom: 0;
+}
+
+.optimizer-params .control-item label {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+}
+
+/* Enhanced checkbox styling for optimizer toggles */
+.optimizer-toggle-label input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--checkbox-border);
+    border-radius: 4px;
+    background: var(--checkbox-bg);
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.optimizer-toggle-label input[type="checkbox"]:hover {
+    border-color: var(--border-hover);
+    background: var(--checkbox-hover-bg);
+}
+
+body[data-theme="dark"] .optimizer-toggle-label input[type="checkbox"]:hover {
+    border-color: #5a9eff;
+}
+
+body[data-theme="light"] .optimizer-toggle-label input[type="checkbox"]:hover {
+    border-color: #4a9eff;
+}
+
+.optimizer-toggle-label input[type="checkbox"]:checked {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+}
+
+.optimizer-toggle-label input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}

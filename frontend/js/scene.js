@@ -22,7 +22,11 @@ const API_BASE_URL = window.API_BASE_URL; // Also keep as const for this file
 function initScene() {
     // Scene
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0a0a0a);
+    
+    // Set initial background color based on saved theme
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    const bgColor = savedTheme === 'dark' ? 0x0a0a0a : 0xfafafa;
+    scene.background = new THREE.Color(bgColor);
     
     // Export scene globally for theme management
     window.scene = scene;
@@ -69,8 +73,10 @@ function initScene() {
     directionalLight2.position.set(-10, -10, -5);
     scene.add(directionalLight2);
     
-    // Grid helper
-    const gridHelper = new THREE.GridHelper(20, 20, 0x444444, 0x222222);
+    // Grid helper with theme-appropriate colors
+    const gridColor1 = savedTheme === 'dark' ? 0x444444 : 0xcccccc;
+    const gridColor2 = savedTheme === 'dark' ? 0x222222 : 0xe8e8e8;
+    const gridHelper = new THREE.GridHelper(20, 20, gridColor1, gridColor2);
     scene.add(gridHelper);
     
     // Axes helper

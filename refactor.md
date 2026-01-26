@@ -8,8 +8,6 @@
 
 - [ ] **Add Real ML Problems** - Implement actual ML loss landscapes (linear regression, logistic regression, simple neural nets, etc.) with 2-parameter constraint for clean visualization
 
-- [ ] **Keep Existing Manifolds** - Preserve Gaussian Wells, Himmelblau, Rastrigin, Ackley functions
-
 - [ ] **Handle Multi-Parameter Problems** - Figure out visualization strategy for >2 parameters (partial derivatives? 2D slices? parameter pair selection?)
 
 - [ ] **Add random parameter cycle** - Make the deafult gaussian wells parameters more intereseting. Also add a randomness/cylce button that will randomize tehe parameters

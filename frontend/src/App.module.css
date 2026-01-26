@@ -1,0 +1,83 @@
+.container {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Card positions */
+.topLeft {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 100;
+}
+
+.topRight {
+  position: absolute;
+  top: 20px;
+  right: 80px; /* Leave room for floating buttons */
+  z-index: 100;
+}
+
+.bottomLeft {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  z-index: 100;
+}
+
+.bottomRight {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  z-index: 100;
+}
+
+/* Floating buttons container */
+.floatingButtons {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 150;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .topLeft,
+  .topRight,
+  .bottomLeft,
+  .bottomRight {
+    position: fixed;
+    left: 10px;
+    right: 10px;
+    max-width: calc(100vw - 20px);
+  }
+  
+  .topLeft {
+    top: 10px;
+  }
+  
+  .topRight {
+    top: auto;
+    bottom: 200px;
+    right: 10px;
+  }
+  
+  .bottomLeft {
+    bottom: 10px;
+  }
+  
+  .bottomRight {
+    bottom: 120px;
+  }
+  
+  .floatingButtons {
+    top: 10px;
+    right: 10px;
+    flex-direction: row;
+  }
+}

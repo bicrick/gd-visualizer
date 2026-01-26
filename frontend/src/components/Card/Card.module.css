@@ -1,0 +1,92 @@
+.card {
+  background: var(--overlay-panel);
+  border-radius: 8px;
+  border: 1px solid var(--border-primary);
+  backdrop-filter: blur(10px);
+  min-width: 280px;
+  max-width: 400px;
+  box-shadow: 0 4px 12px var(--shadow-heavy);
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  user-select: none;
+  transition: background 0.2s ease;
+  background: var(--bg-panel-header);
+}
+
+.header:hover .headerContent {
+  opacity: 0.8;
+}
+
+.headerContent {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.summary {
+  font-size: 14px;
+  color: var(--accent-primary);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.collapsedControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 12px;
+  margin-right: 12px;
+}
+
+.arrow {
+  color: var(--text-muted);
+  font-size: 10px;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.arrow.collapsed {
+  transform: rotate(-90deg);
+}
+
+.content {
+  max-height: 600px;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+}
+
+.content.contentCollapsed {
+  max-height: 0;
+}
+
+.contentInner {
+  padding: 16px;
+  border-top: 1px solid var(--border-divider);
+}
+
+/* Scrollable content for tall cards */
+.card[data-scrollable="true"] .contentInner {
+  max-height: 400px;
+  overflow-y: auto;
+}

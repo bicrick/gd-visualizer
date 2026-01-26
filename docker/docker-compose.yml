@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+    container_name: gd-backend
+    platform: linux/amd64
+    ports:
+      - "5001:5001"
+    volumes:
+      # Mount backend for hot reload
+      - ../backend:/app/backend
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+      - PORT=5001
+    networks:
+      - gd-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.frontend
+    container_name: gd-frontend
+    platform: linux/amd64
+    ports:
+      - "3000:3000"
+    volumes:
+      # Mount frontend source files for hot reload, excluding node_modules
+      - ../frontend/src:/app/src
+      - ../frontend/index.html:/app/index.html
+      - ../frontend/vite.config.ts:/app/vite.config.ts
+      - ../frontend/tsconfig.json:/app/tsconfig.json
+      - ../frontend/package.json:/app/package.json
+      # Mount favicon and static assets
+      - ../frontend/favicon.ico:/app/favicon.ico
+      - ../frontend/favicon-16x16.png:/app/favicon-16x16.png
+      - ../frontend/favicon-32x32.png:/app/favicon-32x32.png
+      - ../frontend/apple-touch-icon.png:/app/apple-touch-icon.png
+      - ../frontend/android-chrome-192x192.png:/app/android-chrome-192x192.png
+      - ../frontend/android-chrome-512x512.png:/app/android-chrome-512x512.png
+      # Named volume for node_modules to persist between rebuilds
+      - frontend_node_modules:/app/node_modules
+    environment:
+      - NODE_ENV=development
+      - BACKEND_URL=http://backend:5001
+    networks:
+      - gd-network
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+networks:
+  gd-network:
+    driver: bridge
+
+volumes:
+  frontend_node_modules:

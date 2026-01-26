@@ -346,29 +346,8 @@ function animateOptimizers() {
 
 // Start animation
 function startAnimation() {
-    // If we're at the end, reset to beginning
-    if (currentTrajectories) {
-        const existingTrajectories = Object.keys(currentTrajectories).filter(name => 
-            currentTrajectories[name] && currentTrajectories[name].length > 0
-        );
-        
-        if (existingTrajectories.length > 0) {
-            const maxSteps = Math.max(
-                ...existingTrajectories.map(name => currentTrajectories[name]?.length || 0)
-            );
-            
-            // If we're at or past the end, restart from beginning
-            if (animationState.currentStep >= maxSteps) {
-                animationState.currentStep = 0;
-                
-                // Update timeline display
-                if (window.updateTimelineDisplay) {
-                    window.updateTimelineDisplay(0, maxSteps);
-                }
-            }
-        }
-    }
-    
+    // If we're at the end, stay at the end (don't auto-restart)
+    // User can use reset button to start from beginning
     animationState.isPlaying = true;
 }
 window.startAnimation = startAnimation; // Make globally accessible

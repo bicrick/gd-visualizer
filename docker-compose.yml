@@ -1,16 +1,45 @@
 version: '3.8'
 
 services:
-  app:
+  backend:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.backend.dev
+    container_name: gd-backend
     ports:
-      - "8080:5000"
+      - "5001:5001"
     volumes:
-      # Mount for development (hot reload)
+      # Mount backend for hot reload
       - ./backend:/app/backend
-      - ./frontend:/app/frontend
     environment:
       - FLASK_ENV=development
       - FLASK_DEBUG=1
+      - PORT=5001
+    networks:
+      - gd-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend.dev
+    container_name: gd-frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      # Mount frontend for hot reload
+      - ./frontend:/app
+      # Use anonymous volumes for node_modules to avoid conflicts
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - BACKEND_URL=http://backend:5001
+    networks:
+      - gd-network
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+networks:
+  gd-network:
+    driver: bridge

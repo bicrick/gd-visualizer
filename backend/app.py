@@ -7,6 +7,7 @@ from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import os
+import time
 import numpy as np
 from loss_functions import (
     DEFAULT_LOSS_FUNCTION, 
@@ -36,7 +37,8 @@ CORS(app, resources={
             "https://gd-visualizer-n7t7jrq0e-bicricks-projects.vercel.app",
             "http://localhost:3000",
             "http://localhost:5001",
-            "http://127.0.0.1:5001"
+            "http://127.0.0.1:5001",
+            "http://frontend:3000"
         ],
         "methods": ["GET", "POST", "OPTIONS"],
         "allow_headers": ["Content-Type"]
@@ -257,9 +259,14 @@ def optimize():
     # Result dictionary
     result = {}
     
+    # Timing dictionary
+    optimizer_timings = {}
+    start_total = time.time()
+    
     # Only run enabled optimizers with their specific parameters
     if enabled_optimizers.get('sgd', False):
         params = get_optimizer_params('sgd')
+        start_time = time.time()
         result['sgd'] = stochastic_gradient_descent(
             actual_loss_function,
             initial_params,
@@ -271,9 +278,11 @@ def optimize():
             max_iterations=params['max_iterations'],
             bounds=bounds
         )
+        optimizer_timings['sgd'] = time.time() - start_time
     
     if enabled_optimizers.get('batch', False):
         params = get_optimizer_params('batch')
+        start_time = time.time()
         result['batch'] = batch_gradient_descent(
             actual_loss_function,
             initial_params,
@@ -285,9 +294,11 @@ def optimize():
             max_iterations=params['max_iterations'],
             bounds=bounds
         )
+        optimizer_timings['batch'] = time.time() - start_time
     
     if enabled_optimizers.get('momentum', False):
         params = get_optimizer_params('momentum', has_momentum=True)
+        start_time = time.time()
         result['momentum'] = momentum_gradient_descent(
             actual_loss_function,
             initial_params,
@@ -301,9 +312,11 @@ def optimize():
             lr_decay=params['lr_decay'],
             bounds=bounds
         )
+        optimizer_timings['momentum'] = time.time() - start_time
     
     if enabled_optimizers.get('adam', False):
         params = get_optimizer_params('adam', is_adam=True)
+        start_time = time.time()
         result['adam'] = adam_optimizer(
             actual_loss_function,
             initial_params,
@@ -318,9 +331,11 @@ def optimize():
             max_iterations=params['max_iterations'],
             bounds=bounds
         )
+        optimizer_timings['adam'] = time.time() - start_time
     
     if enabled_optimizers.get('ballistic', False):
         params = get_optimizer_params('ballistic', is_ballistic=True)
+        start_time = time.time()
         result['ballistic'] = ballistic_gradient_descent(
             actual_loss_function,
             initial_params,
@@ -333,9 +348,11 @@ def optimize():
             seed=seed,
             bounds=bounds
         )
+        optimizer_timings['ballistic'] = time.time() - start_time
     
     if enabled_optimizers.get('ballistic_adam', False):
         params = get_optimizer_params('ballistic_adam', is_ballistic_adam=True)
+        start_time = time.time()
         result['ballistic_adam'] = ballistic_adam_optimizer(
             actual_loss_function,
             initial_params,
@@ -353,9 +370,22 @@ def optimize():
             max_iterations=params['max_iterations'],
             bounds=bounds
         )
+        optimizer_timings['ballistic_adam'] = time.time() - start_time
     
-    # Add manifold info to response
+    # Calculate total time
+    total_time = time.time() - start_total
+    
+    # Add manifold info and timing to response
     result['manifold_id'] = manifold_id
+    result['timings'] = {
+        'total': total_time,
+        'optimizers': optimizer_timings
+    }
+    
+    # Log timing information for debugging
+    print(f"[TIMING] Total: {total_time:.3f}s")
+    for optimizer, timing in optimizer_timings.items():
+        print(f"[TIMING]   {optimizer}: {timing:.3f}s")
     
     return jsonify(result)
 

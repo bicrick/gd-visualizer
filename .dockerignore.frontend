@@ -2,15 +2,16 @@
 .git/
 .gitignore
 
-# Python cache
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
+# Backend (not needed in frontend container)
+backend/
 
 # Docker files
 docker-compose.yml
+Dockerfile*
+
+# Documentation
+README.md
+*.md
 
 # IDE files
 .vscode/
@@ -20,7 +21,7 @@ docker-compose.yml
 # OS files
 .DS_Store
 
-# Build outputs
+# Build output
 frontend/dist/
 frontend/node_modules/
 

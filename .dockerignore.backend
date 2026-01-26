@@ -9,8 +9,16 @@ __pycache__/
 *.pyd
 .Python
 
+# Frontend (not needed in backend container)
+frontend/
+
 # Docker files
 docker-compose.yml
+Dockerfile*
+
+# Documentation
+README.md
+*.md
 
 # IDE files
 .vscode/
@@ -20,9 +28,8 @@ docker-compose.yml
 # OS files
 .DS_Store
 
-# Build outputs
-frontend/dist/
-frontend/node_modules/
+# Node modules
+node_modules/
 
 # Vercel
 .vercel/

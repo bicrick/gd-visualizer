@@ -1,0 +1,37 @@
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.option {
+  padding: 12px;
+  cursor: pointer;
+  background: var(--bg-input);
+  border: 1px solid var(--border-primary);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.option:hover {
+  background: rgba(74, 158, 255, 0.1);
+  border-color: var(--border-hover);
+}
+
+.option.selected {
+  background: rgba(74, 158, 255, 0.15);
+  border-color: rgba(74, 158, 255, 0.5);
+}
+
+.optionName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.optionDescription {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  line-height: 1.4;
+}

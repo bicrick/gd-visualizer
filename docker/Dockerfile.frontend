@@ -1,0 +1,18 @@
+FROM node:20-slim
+
+WORKDIR /app
+
+# Copy package files first for better caching
+COPY frontend/package*.json ./
+
+# Clean install to ensure correct platform binaries
+# Remove any cached npm data and install fresh
+RUN rm -rf node_modules package-lock.json && \
+    npm cache clean --force && \
+    npm install
+
+# Expose port for frontend
+EXPOSE 3000
+
+# Run Vite dev server with hot reload
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

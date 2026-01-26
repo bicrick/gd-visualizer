@@ -9,13 +9,18 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy ONLY backend code (no frontend)
 COPY backend/*.py ./backend/
 
+# Set working directory to backend for imports
+WORKDIR /app/backend
+
 # Expose port (Cloud Run will set PORT env var)
 EXPOSE 8080
 
 # Set environment variable for production
 ENV PYTHONUNBUFFERED=1
+ENV PORT=8080
 
 # Run with gunicorn for production
-CMD exec gunicorn --bind :$PORT --workers 1 --threads 4 --timeout 300 --chdir /app/backend app:app
+# Use 0.0.0.0 to bind to all interfaces (required for Cloud Run)
+CMD gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 300 app:app
 
 

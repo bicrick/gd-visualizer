@@ -104,12 +104,6 @@ function initControls() {
         if (window.updateStartPointMarker) {
             window.updateStartPointMarker(x, y);
         }
-        // Update classifier viz if active
-        if (window.getCurrentManifoldId && window.getCurrentManifoldId() === 'neural_net_classifier') {
-            if (window.renderClassifierViz) {
-                window.renderClassifierViz(x, y);
-            }
-        }
     });
     
     // Pick point button
@@ -658,13 +652,6 @@ function updateStartPosition(x, y) {
     // Update visual marker on the graph
     if (window.updateStartPointMarker) {
         window.updateStartPointMarker(x, y);
-    }
-    
-    // Update classifier viz if active and not animating
-    if (window.getCurrentManifoldId && window.getCurrentManifoldId() === 'neural_net_classifier') {
-        if (window.renderClassifierViz && animationUIState === 'stopped') {
-            window.renderClassifierViz(x, y);
-        }
     }
 }
 

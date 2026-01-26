@@ -300,25 +300,6 @@ async function changeManifold(manifoldId) {
     
     // Load new landscape
     await loadLandscape(manifoldId);
-    
-    // Show/hide classifier panel based on manifold
-    if (manifoldId === 'neural_net_classifier') {
-        if (window.setClassifierPanelVisible) {
-            window.setClassifierPanelVisible(true);
-            // Initialize and render with start position or default
-            setTimeout(() => {
-                if (window.renderClassifierViz && window.currentParams) {
-                    const startX = window.currentParams.startX || 0;
-                    const startY = window.currentParams.startY || 0;
-                    window.renderClassifierViz(startX, startY);
-                }
-            }, 100);
-        }
-    } else {
-        if (window.setClassifierPanelVisible) {
-            window.setClassifierPanelVisible(false);
-        }
-    }
 }
 
 // Update wireframe theme colors

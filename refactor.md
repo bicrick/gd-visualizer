@@ -6,8 +6,6 @@
 
 - [ ] **Mobile-First UI Refactor** - No scrolling sidebar, works great on mobile. Consider floating cards or settings cog for advanced options.
 
-- [ ] **Remove Two-Circle Clustering** - Clean up the classifier visualization code
-
 - [ ] **Add Real ML Problems** - Implement actual ML loss landscapes (linear regression, logistic regression, simple neural nets, etc.) with 2-parameter constraint for clean visualization
 
 - [ ] **Keep Existing Manifolds** - Preserve Gaussian Wells, Himmelblau, Rastrigin, Ackley functions

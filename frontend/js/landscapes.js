@@ -3,9 +3,6 @@
  * Ported from backend/loss_functions.py for instant parameter updates
  */
 
-// Cached classifier dataset for neural_net_classifier_loss
-let cachedClassifierDataset = null;
-
 /**
  * Himmelblau's function - has 4 local minima
  */
@@ -97,104 +94,6 @@ function ackley(x, y) {
 }
 
 /**
- * Sigmoid activation function with numerical stability
- */
-function sigmoid(x) {
-    if (x >= 0) {
-        return 1 / (1 + Math.exp(-x));
-    } else {
-        const exp_x = Math.exp(x);
-        return exp_x / (1 + exp_x);
-    }
-}
-
-/**
- * Clip value between min and max
- */
-function clip(value, min, max) {
-    return Math.min(Math.max(value, min), max);
-}
-
-/**
- * Fetch and cache the classifier dataset
- */
-async function loadClassifierDataset() {
-    if (cachedClassifierDataset) {
-        return cachedClassifierDataset;
-    }
-    
-    try {
-        const API_BASE_URL = window.API_BASE_URL || 'https://gd-experiments-1031734458893.us-central1.run.app/api';
-        const response = await fetch(`${API_BASE_URL}/classifier_dataset`);
-        const data = await response.json();
-        
-        // Cache the dataset
-        cachedClassifierDataset = {
-            X: data.points,
-            y: data.labels
-        };
-        
-        return cachedClassifierDataset;
-    } catch (error) {
-        console.error('Error loading classifier dataset:', error);
-        return null;
-    }
-}
-
-/**
- * Circle-based binary classifier with 2 learnable parameters
- * Loss: Binary cross-entropy based on distance from circle center
- */
-async function neural_net_classifier_loss(center_x, center_y) {
-    const dataset = await loadClassifierDataset();
-    if (!dataset) {
-        return 1.0; // Return default value if dataset unavailable
-    }
-    
-    const X = dataset.X;
-    const y = dataset.y;
-    
-    // Fixed classifier radius
-    const classifier_radius = 1.2;
-    const steepness = 2.0;
-    const epsilon = 1e-7;
-    
-    // Compute loss
-    let loss_sum = 0;
-    for (let i = 0; i < X.length; i++) {
-        const dx = X[i][0] - center_x;
-        const dy = X[i][1] - center_y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        
-        // Classification: smooth sigmoid based on distance relative to radius
-        const distance_from_boundary = (distance - classifier_radius) * steepness;
-        
-        // Sigmoid: inside circle → 0, outside → 1
-        let prediction = sigmoid(distance_from_boundary);
-        prediction = clip(prediction, epsilon, 1 - epsilon);
-        
-        // Binary cross-entropy loss
-        loss_sum += y[i] * Math.log(prediction) + (1 - y[i]) * Math.log(1 - prediction);
-    }
-    
-    const loss = -loss_sum / X.length;
-    
-    // Add barrier penalty at origin
-    const dist_from_origin = Math.sqrt(center_x * center_x + center_y * center_y);
-    const barrier_penalty = 1.5 * Math.exp(-dist_from_origin);
-    
-    // Small regularization to prevent going too far out
-    const edge_regularization = 0.005 * (center_x * center_x + center_y * center_y);
-    
-    // Scale to create more dramatic landscape
-    const baseline = 0.4;
-    const scaled_loss = (loss + barrier_penalty + edge_regularization - baseline) * 5.0;
-    
-    // Ensure always slightly positive
-    return Math.max(0.05, scaled_loss);
-}
-
-/**
  * Generate a mesh grid of loss values for 3D visualization
  * 
  * @param {Function} func - Loss function that takes (x, y) and returns loss value
@@ -266,8 +165,7 @@ const MANIFOLD_FUNCTIONS = {
     'custom_multimodal': custom_multimodal,
     'himmelblau': himmelblau,
     'rastrigin': rastrigin,
-    'ackley': ackley,
-    'neural_net_classifier': neural_net_classifier_loss
+    'ackley': ackley
 };
 
 /**
@@ -296,4 +194,3 @@ async function generateManifoldLandscape(manifold_id, resolution = 80, x_range =
 window.generateManifoldLandscape = generateManifoldLandscape;
 window.generateLandscapeMesh = generateLandscapeMesh;
 window.getManifoldFunction = getManifoldFunction;
-window.loadClassifierDataset = loadClassifierDataset;

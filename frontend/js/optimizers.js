@@ -308,22 +308,6 @@ function animateOptimizers() {
         animationState.isPlaying = false;
         animationState.currentStep = maxSteps;
         
-        // Do a final update to classifier viz to keep circles visible at equilibrium
-        if (window.updateClassifierViz && window.getCurrentManifoldId && 
-            window.getCurrentManifoldId() === 'neural_net_classifier') {
-            // Get final positions
-            const finalPositions = {};
-            existingTrajectories.forEach(name => {
-                const trajectory = currentTrajectories[name];
-                if (trajectory && trajectory.length > 0) {
-                    const lastIdx = trajectory.length - 1;
-                    const [x, y, z_or_loss] = trajectory[lastIdx];
-                    finalPositions[name] = { x, y, loss: z_or_loss };
-                }
-            });
-            window.updateClassifierViz(finalPositions);
-        }
-        
         // Update UI state to stopped (animation finished)
         if (window.setAnimationState) {
             window.setAnimationState('stopped');
@@ -347,12 +331,6 @@ function animateOptimizers() {
             currentPositions[name] = { x, y, loss: z_or_loss };
         }
     });
-    
-    // Update classifier visualization if active
-    if (window.updateClassifierViz && window.getCurrentManifoldId && 
-        window.getCurrentManifoldId() === 'neural_net_classifier') {
-        window.updateClassifierViz(currentPositions);
-    }
     
     // Check for overlapping balls and show segmented balls if needed
     updateSegmentedBalls();
@@ -459,12 +437,6 @@ function seekToStep(step) {
         } else {
             ball.visible = false;
         }
-    }
-    
-    // Update classifier visualization if active
-    if (window.updateClassifierViz && window.getCurrentManifoldId && 
-        window.getCurrentManifoldId() === 'neural_net_classifier') {
-        window.updateClassifierViz(currentPositions);
     }
     
     // Handle overlapping balls at this step

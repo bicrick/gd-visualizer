@@ -43,11 +43,12 @@ CORS(app, resources={
     }
 })
 
-# Initialize rate limiter - 50 requests per hour per IP
+# Initialize rate limiter - 500 requests per hour per IP
+# Increased from 50 since landscape rendering is now client-side
 limiter = Limiter(
     app=app,
     key_func=get_remote_address,
-    default_limits=["50 per hour"],
+    default_limits=["500 per hour"],
     storage_uri="memory://"
 )
 
@@ -56,7 +57,7 @@ limiter = Limiter(
 def ratelimit_handler(e):
     return jsonify({
         'error': 'rate_limit_exceeded',
-        'message': 'You have reached the demo rate limit (50 requests/hour). Run unlimited locally with Docker!',
+        'message': 'You have reached the demo rate limit (500 requests/hour). Run unlimited locally with Docker!',
         'retry_after': str(e.description)
     }), 429
 

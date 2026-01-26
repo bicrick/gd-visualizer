@@ -96,33 +96,45 @@ function initScene() {
     animate();
 }
 
-// Load landscape mesh from backend
+// Load landscape mesh using client-side generation
 async function loadLandscape(manifoldId = null) {
     const loadingEl = document.getElementById('loading');
     loadingEl.classList.remove('hidden');
+    loadingEl.textContent = 'Generating landscape...';
     
     // Use provided manifoldId or current one
     const manifold = manifoldId || currentManifoldId;
     
     try {
-        // Build URL with parameters if available
-        let url = `${API_BASE_URL}/landscape?resolution=80&manifold=${encodeURIComponent(manifold)}`;
+        // Get manifold metadata to determine range
+        const manifoldMeta = availableManifolds.find(m => m.id === manifold);
+        const defaultRange = manifoldMeta ? manifoldMeta.default_range : [-5, 5];
+        const x_range = [defaultRange[0], defaultRange[1]];
+        const y_range = [defaultRange[0], defaultRange[1]];
         
-        // Add manifold parameters if available
+        // Get manifold parameters if available
+        let params = null;
         if (window.getManifoldParameters) {
-            const params = window.getManifoldParameters();
-            if (params && Object.keys(params).length > 0) {
-                url += `&params=${encodeURIComponent(JSON.stringify(params))}`;
+            const manifoldParams = window.getManifoldParameters();
+            if (manifoldParams && Object.keys(manifoldParams).length > 0) {
+                params = manifoldParams;
             }
         }
         
-        const response = await fetch(url);
-        const data = await response.json();
+        // Generate landscape mesh locally (no backend call!)
+        const data = await window.generateManifoldLandscape(
+            manifold,
+            80,  // resolution
+            x_range,
+            y_range,
+            params
+        );
         
         createLandscapeMesh(data);
         currentManifoldId = manifold;
         updateManifoldDisplay(manifold);
         loadingEl.classList.add('hidden');
+        loadingEl.textContent = 'Loading...';
         
         // Update start point marker after landscape is loaded
         if (window.currentParams) {
@@ -134,7 +146,7 @@ async function loadLandscape(manifoldId = null) {
         }
     } catch (error) {
         console.error('Error loading landscape:', error);
-        loadingEl.textContent = 'Error loading landscape. Make sure backend is running.';
+        loadingEl.textContent = 'Error generating landscape.';
     }
 }
 

@@ -29,8 +29,8 @@ let enabledOptimizers = {
     batch: true,
     momentum: true,
     adam: true,
-    ballistic: true,
-    ballistic_adam: true
+    ballistic: false,
+    ballistic_adam: false
 };
 
 // Colors for each optimizer

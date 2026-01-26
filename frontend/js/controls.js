@@ -864,6 +864,20 @@ function populateManifoldParameters(manifold) {
 }
 
 function getManifoldParameters() {
+    // If currentManifoldParams is empty and we're on custom_multimodal, 
+    // ensure we have the default values
+    const manifoldId = window.getCurrentManifoldId ? window.getCurrentManifoldId() : 'custom_multimodal';
+    
+    if (manifoldId === 'custom_multimodal' && Object.keys(currentManifoldParams).length === 0) {
+        // Return default values for custom_multimodal
+        return {
+            global_scale: 0.1,
+            well_width: 2.0,
+            well_depth_scale: 1.0,
+            num_wells: 6
+        };
+    }
+    
     return currentManifoldParams;
 }
 

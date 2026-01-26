@@ -20,6 +20,43 @@ def rastrigin(x, y, A=10):
     return A * 2 + (x**2 - A * np.cos(1.5 * np.pi * x)) + (y**2 - A * np.cos(1.5 * np.pi * y))
 
 
+def generate_well_positions(num_wells, radius=4.0, base_depth=2.5):
+    """
+    Generate well positions in a regular polygon pattern.
+    
+    Args:
+        num_wells: Number of wells to generate
+        radius: Distance from center to each well
+        base_depth: Depth value for each well
+    
+    Returns:
+        List of (x, y, depth) tuples
+    """
+    wells = []
+    n = int(num_wells)
+    
+    if n == 0:
+        return wells
+    
+    if n == 1:
+        # Single well at the center
+        wells.append((0, 0, base_depth))
+    elif n == 2:
+        # Two wells on opposite sides (top and bottom)
+        wells.append((0, radius, base_depth))
+        wells.append((0, -radius, base_depth))
+    else:
+        # Regular polygon: n >= 3
+        for i in range(n):
+            # Start from top (angle = -π/2) and go clockwise
+            angle = (2 * np.pi * i) / n - np.pi / 2
+            wx = radius * np.cos(angle)
+            wy = radius * np.sin(angle)
+            wells.append((wx, wy, base_depth))
+    
+    return wells
+
+
 def custom_multimodal(x, y, global_scale=0.1, well_width=2.0, well_depth_scale=1.0, num_wells=6):
     """
     Custom function with multiple local minima (wells/valleys) for demonstration.
@@ -30,23 +67,13 @@ def custom_multimodal(x, y, global_scale=0.1, well_width=2.0, well_depth_scale=1
         global_scale: multiplier for the quadratic term (default 0.1)
         well_width: controls the Gaussian width (default 2.0)
         well_depth_scale: multiplier for all well depths (default 1.0)
-        num_wells: number of wells (valleys) to include (default 6, max 6)
+        num_wells: number of wells (valleys) to include (default 6)
     """
     # Global minimum at (0, 0)
     loss = (x**2 + y**2) * global_scale
     
-    # Well positions (these will be valleys/local minima)
-    all_wells = [
-        (-3, -3, 2.0),
-        (3, -3, 2.5),
-        (-3, 3, 2.2),
-        (3, 3, 2.8),
-        (0, -4, 1.5),
-        (0, 4, 1.8),
-    ]
-    
-    # Use only the first num_wells
-    wells = all_wells[:int(num_wells)]
+    # Generate well positions dynamically in regular polygon pattern
+    wells = generate_well_positions(num_wells, radius=4.0, base_depth=2.5)
     
     # Add wells (subtract to create valleys/local minima)
     for wx, wy, depth in wells:

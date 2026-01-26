@@ -38,8 +38,8 @@ function generateWellPositions(num_wells, radius = 4.0, base_depth = 2.5) {
     }
     
     if (n === 1) {
-        // Single well at the top
-        wells.push([0, radius, base_depth]);
+        // Single well at the center
+        wells.push([0, 0, base_depth]);
     } else if (n === 2) {
         // Two wells on opposite sides (top and bottom)
         wells.push([0, radius, base_depth]);

@@ -11,7 +11,7 @@
     "deploy:image": "gcloud config set account patrickbrownai@gmail.com && gcloud config set project gd-visualizer && gcloud run deploy gd-experiments --image us-central1-docker.pkg.dev/gd-visualizer/cloud-run-source-deploy/gd-experiments:latest --platform managed --region us-central1 --allow-unauthenticated --memory 512Mi --cpu 1 --timeout 300 --max-instances 1 --min-instances 0 --concurrency 80",
     "deploy:frontend": "cd frontend && vercel --prod",
     "dev": "npm run dev:backend & npm run dev:frontend",
-    "dev:backend": "cd backend && python app.py",
+    "dev:backend": "cd backend && python3 app.py",
     "dev:frontend": "cd frontend && npx serve -l 3000",
     "test:backend": "curl https://gd-experiments-1031734458893.us-central1.run.app/api/health",
     "test:frontend": "curl -I https://gd-visualizer.vercel.app",

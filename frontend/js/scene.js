@@ -14,8 +14,10 @@ let currentManifoldRange = [-5, 5]; // Store current manifold range for coordina
 let startPointMarker = null; // Visual marker for the start point
 let landscapeZRange = { zMin: 0, zMax: 1, scale: 2.0 }; // Store z-range for ballistic normalization
 
-// Point to Cloud Run backend API
-window.API_BASE_URL = 'https://gd-experiments-1031734458893.us-central1.run.app/api';
+// Point to Cloud Run backend API, or localhost for development
+window.API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:5001/api'
+    : 'https://gd-experiments-1031734458893.us-central1.run.app/api';
 const API_BASE_URL = window.API_BASE_URL; // Also keep as const for this file
 
 // Initialize Three.js scene

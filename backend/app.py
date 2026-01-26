@@ -35,8 +35,8 @@ CORS(app, resources={
             "https://gd-visualizer.vercel.app",
             "https://gd-visualizer-n7t7jrq0e-bicricks-projects.vercel.app",
             "http://localhost:3000",
-            "http://localhost:5000",
-            "http://127.0.0.1:5000"
+            "http://localhost:5001",
+            "http://127.0.0.1:5001"
         ],
         "methods": ["GET", "POST", "OPTIONS"],
         "allow_headers": ["Content-Type"]
@@ -242,7 +242,7 @@ def optimize():
     manifold_params = data.get('manifold_params', {})
     
     # Create wrapper function if manifold has parameters
-    if manifold_params:
+    if manifold_params and len(manifold_params) > 0:
         def loss_wrapper(x, y):
             return loss_function(x, y, **manifold_params)
         actual_loss_function = loss_wrapper
@@ -399,6 +399,6 @@ def health():
 if __name__ == '__main__':
     # Allow connections from any host when running in Docker
     # Use PORT environment variable for Cloud Run compatibility
-    port = int(os.environ.get('PORT', 5000))
+    port = int(os.environ.get('PORT', 5001))
     app.run(debug=False, host='0.0.0.0', port=port)
 

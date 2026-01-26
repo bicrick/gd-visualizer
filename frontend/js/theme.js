@@ -32,6 +32,11 @@ function setTheme(theme, animate = true) {
     
     // Update grid colors
     updateSceneGrid(theme);
+    
+    // Update wireframe colors
+    if (window.updateWireframeTheme) {
+        window.updateWireframeTheme(theme === 'dark');
+    }
 }
 
 // Toggle between dark and light themes

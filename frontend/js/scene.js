@@ -5,6 +5,7 @@
 let scene, camera, renderer, controls;
 let landscapeMesh = null;
 let landscapeGeometry = null;
+let landscapeWireframe = null;
 let pickingMode = false;
 let raycaster = null;
 let mouse = new THREE.Vector2();
@@ -320,11 +321,19 @@ async function changeManifold(manifoldId) {
     }
 }
 
+// Update wireframe theme colors
+function updateWireframeTheme(isDark) {
+    if (landscapeWireframe && landscapeWireframe.material) {
+        landscapeWireframe.material.color.setHex(isDark ? 0x444444 : 0x999999);
+    }
+}
+
 // Expose functions to global scope
 window.loadLandscape = loadLandscape;
 window.getCurrentManifoldId = () => currentManifoldId;
 window.getCurrentManifoldRange = () => currentManifoldRange;
 window.getLandscapeZRange = () => landscapeZRange;
+window.updateWireframeTheme = updateWireframeTheme;
 
 // Create 3D mesh from landscape data
 function createLandscapeMesh(landscapeData) {
@@ -332,6 +341,13 @@ function createLandscapeMesh(landscapeData) {
     if (landscapeMesh) {
         scene.remove(landscapeMesh);
         landscapeGeometry.dispose();
+    }
+    
+    // Remove existing wireframe if present
+    if (landscapeWireframe) {
+        scene.remove(landscapeWireframe);
+        landscapeWireframe.geometry.dispose();
+        landscapeWireframe.material.dispose();
     }
     
     // Store the range from landscape data
@@ -420,6 +436,22 @@ function createLandscapeMesh(landscapeData) {
     landscapeMesh = new THREE.Mesh(landscapeGeometry, material);
     landscapeMesh.rotation.x = -Math.PI / 2;
     scene.add(landscapeMesh);
+    
+    // Create a wireframe overlay for subtle mesh texture
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    const wireframeGeometry = landscapeGeometry.clone();
+    const wireframeMaterial = new THREE.MeshBasicMaterial({
+        color: savedTheme === 'dark' ? 0x444444 : 0x999999,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.15, // Very subtle
+        depthWrite: false // Prevent z-fighting
+    });
+    
+    landscapeWireframe = new THREE.Mesh(wireframeGeometry, wireframeMaterial);
+    landscapeWireframe.rotation.x = -Math.PI / 2;
+    landscapeWireframe.position.y = 0.01; // Slightly above to prevent z-fighting
+    scene.add(landscapeWireframe);
 }
 
 // Create or update start point marker

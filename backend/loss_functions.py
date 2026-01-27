@@ -6,20 +6,6 @@ Creates 2D parameter spaces with multiple local minima.
 import numpy as np
 
 
-def himmelblau(x, y):
-    """
-    Himmelblau's function - has 4 local minima at (3, 2), (-2.8, 3.1), (-3.8, -3.3), (3.6, -1.8)
-    """
-    return (x**2 + y - 11)**2 + (x + y**2 - 7)**2
-
-
-def rastrigin(x, y, A=10):
-    """
-    Rastrigin function - highly multimodal with many local minima
-    """
-    return A * 2 + (x**2 - A * np.cos(1.5 * np.pi * x)) + (y**2 - A * np.cos(1.5 * np.pi * y))
-
-
 def generate_well_positions(num_wells, radius=4.0, base_depth=2.5):
     """
     Generate well positions in a regular polygon pattern.
@@ -171,18 +157,6 @@ MANIFOLD_REGISTRY = {
             {'name': 'well_depth_scale', 'label': 'Well Depth', 'min': -3.0, 'max': 3.0, 'step': 0.1, 'default': -1.5},
             {'name': 'num_wells', 'label': 'Number of Wells', 'min': 1, 'max': 6, 'step': 1, 'default': 3}
         ]
-    },
-    'himmelblau': {
-        'function': himmelblau,
-        'name': 'Himmelblau',
-        'description': '4 distinct local minima',
-        'default_range': (-5, 5),
-    },
-    'rastrigin': {
-        'function': rastrigin,
-        'name': 'Rastrigin',
-        'description': 'Highly multimodal with regular pattern',
-        'default_range': (-5, 5),
     },
     'ackley': {
         'function': ackley,

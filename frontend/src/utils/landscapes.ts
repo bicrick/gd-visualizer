@@ -19,22 +19,6 @@ export interface ManifoldParams {
 }
 
 /**
- * Himmelblau's function - has 4 local minima
- */
-function himmelblau(x: number, y: number): number {
-  return Math.pow(x * x + y - 11, 2) + Math.pow(x + y * y - 7, 2)
-}
-
-/**
- * Rastrigin function - highly multimodal with many local minima
- */
-function rastrigin(x: number, y: number, A = 10): number {
-  return A * 2 + 
-    (x * x - A * Math.cos(1.5 * Math.PI * x)) + 
-    (y * y - A * Math.cos(1.5 * Math.PI * y))
-}
-
-/**
  * Generate well positions in a regular polygon pattern
  */
 function generateWellPositions(numWells: number, radius = 4.0, baseDepth = 2.5): [number, number, number][] {
@@ -102,8 +86,6 @@ type ManifoldFunction = (x: number, y: number, ...args: number[]) => number
 
 const MANIFOLD_FUNCTIONS: Record<string, ManifoldFunction> = {
   'custom_multimodal': customMultimodal,
-  'himmelblau': himmelblau,
-  'rastrigin': rastrigin,
   'ackley': ackley,
 }
 

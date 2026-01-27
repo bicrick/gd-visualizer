@@ -63,7 +63,7 @@ npm run logs:backend
 
 ## Features
 
-- 10+ different loss landscapes (Rosenbrock, Himmelbaum, Rastrigin, etc.)
+- Multiple loss landscapes with adjustable parameters
 - 6 optimization algorithms (SGD, Batch GD, Momentum, Adam, Ballistic, Ballistic Adam)
 - Real-time 3D visualization with Three.js
 - Interactive parameter tuning

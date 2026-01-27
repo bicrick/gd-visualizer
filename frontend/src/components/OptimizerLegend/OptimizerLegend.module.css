@@ -43,7 +43,7 @@
   font-weight: 600;
   color: var(--text-primary);
   white-space: nowrap;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: 'SF Mono', SFMono-Regular, ui-monospace, 'Monaco', 'Menlo', monospace;
 }
 
 .ghost {

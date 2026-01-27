@@ -46,7 +46,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: 'SF Mono', SFMono-Regular, ui-monospace, 'Monaco', 'Menlo', monospace;
 }
 
 .collapsedControls {

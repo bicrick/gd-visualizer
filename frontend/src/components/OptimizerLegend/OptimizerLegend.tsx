@@ -31,6 +31,12 @@ export function OptimizerLegend() {
       displayName: name.charAt(0).toUpperCase() + name.slice(1)
     }))
   
+  // Trigger re-render after mount to ensure centered position is calculated with correct dimensions
+  const [, setRenderTick] = useState(0)
+  useEffect(() => {
+    // Force re-render after initial mount so dragRef has proper dimensions
+    setRenderTick(1)
+  }, [])
   
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {

@@ -262,6 +262,34 @@ export function AnimationCard() {
       collapsedControls={collapsedControls}
     >
       <div className={styles.content}>
+        {/* Media Controls - Now at top */}
+        <div className={styles.section}>
+          <div className={styles.mediaControls}>
+            <button 
+              className={`${styles.mediaBtn} ${styles.primary}`}
+              onClick={handlePlayPause}
+              disabled={isComputing}
+              title={isComputing ? 'Computing...' : animationState === 'playing' ? 'Pause' : 'Play'}
+            >
+              {isComputing ? (
+                <svg className={styles.icon} viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10" fill="none" stroke="white" strokeWidth="2" strokeDasharray="63" strokeDashoffset="0">
+                    <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/>
+                  </circle>
+                </svg>
+              ) : animationState === 'playing' ? (
+                <svg className={styles.icon} viewBox="0 0 24 24">
+                  <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+                </svg>
+              ) : (
+                <svg className={styles.icon} viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+              )}
+            </button>
+          </div>
+        </div>
+        
         {/* Starting Position */}
         <div className={styles.section}>
           <h3 className={styles.sectionTitle}>Starting Position</h3>
@@ -303,34 +331,6 @@ export function AnimationCard() {
               disabled={animationState === 'playing' || isComputing}
             >
               Pick Point
-            </button>
-          </div>
-        </div>
-        
-        {/* Media Controls */}
-        <div className={styles.section}>
-          <div className={styles.mediaControls}>
-            <button 
-              className={`${styles.mediaBtn} ${styles.primary}`}
-              onClick={handlePlayPause}
-              disabled={isComputing}
-              title={isComputing ? 'Computing...' : animationState === 'playing' ? 'Pause' : 'Play'}
-            >
-              {isComputing ? (
-                <svg className={styles.icon} viewBox="0 0 24 24">
-                  <circle cx="12" cy="12" r="10" fill="none" stroke="white" strokeWidth="2" strokeDasharray="63" strokeDashoffset="0">
-                    <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/>
-                  </circle>
-                </svg>
-              ) : animationState === 'playing' ? (
-                <svg className={styles.icon} viewBox="0 0 24 24">
-                  <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
-                </svg>
-              ) : (
-                <svg className={styles.icon} viewBox="0 0 24 24">
-                  <path d="M8 5v14l11-7z"/>
-                </svg>
-              )}
             </button>
           </div>
         </div>

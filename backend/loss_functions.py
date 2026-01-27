@@ -72,19 +72,24 @@ def custom_multimodal(x, y, global_scale=0.1, well_width=3.5, well_depth_scale=-
     return loss
 
 
-def ackley(x, y):
+def ackley(x, y, a=20, b=0.2, c_scale=1.0, vertical_scale=1.0):
     """
     Ackley function - highly multimodal with many local minima surrounding a deep global minimum.
     Global minimum at (0, 0) with value 0.
+    
+    Args:
+        x, y: coordinates in parameter space
+        a: amplitude parameter (default 20)
+        b: decay rate parameter (default 0.2)
+        c_scale: frequency scale multiplier on 2*pi (default 1.0)
+        vertical_scale: vertical scaling factor for entire surface (default 1.0)
     """
-    a = 20
-    b = 0.2
-    c = 2 * np.pi
+    c = 2 * np.pi * c_scale
     
     term1 = -a * np.exp(-b * np.sqrt(0.5 * (x**2 + y**2)))
     term2 = -np.exp(0.5 * (np.cos(c * x) + np.cos(c * y)))
     
-    return term1 + term2 + a + np.e
+    return (term1 + term2 + a + np.e) * vertical_scale
 
 
 
@@ -163,6 +168,12 @@ MANIFOLD_REGISTRY = {
         'name': 'Ackley',
         'description': 'Corrugated surface with deep central minimum',
         'default_range': (-5, 5),
+        'parameters': [
+            {'name': 'a', 'label': 'Amplitude', 'min': 5, 'max': 40, 'step': 1, 'default': 20},
+            {'name': 'b', 'label': 'Decay Rate', 'min': 0.05, 'max': 0.5, 'step': 0.01, 'default': 0.2},
+            {'name': 'c_scale', 'label': 'Frequency', 'min': 0.5, 'max': 3.0, 'step': 0.1, 'default': 1.0},
+            {'name': 'vertical_scale', 'label': 'Vertical Scale', 'min': 0.1, 'max': 5.0, 'step': 0.1, 'default': 1.0}
+        ]
     },
 }
 

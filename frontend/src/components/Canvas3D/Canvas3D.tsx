@@ -12,9 +12,10 @@ const HEIGHT_SCALE = 2.0
 interface LandscapeMeshProps {
   data: LandscapeData
   showWireframe?: boolean
+  heightScale?: number
 }
 
-function LandscapeMesh({ data, meshRef, showWireframe = true }: LandscapeMeshProps & { meshRef?: React.RefObject<THREE.Mesh> }) {
+function LandscapeMesh({ data, meshRef, showWireframe = true, heightScale = HEIGHT_SCALE }: LandscapeMeshProps & { meshRef?: React.RefObject<THREE.Mesh> }) {
   const theme = useUIStore(state => state.theme)
   const pickingMode = useUIStore(state => state.pickingMode)
   const setPickingMode = useUIStore(state => state.setPickingMode)
@@ -72,7 +73,7 @@ function LandscapeMesh({ data, meshRef, showWireframe = true }: LandscapeMeshPro
       
       if (row < rows && col < cols) {
         const normalizedZ = (data.z[row][col] - zMin) / zRangeVal
-        positions.setZ(i, normalizedZ * HEIGHT_SCALE)
+        positions.setZ(i, normalizedZ * heightScale)
         
         const xPos = (col / (cols - 1) - 0.5) * 10
         const yPos = (row / (rows - 1) - 0.5) * 10
@@ -88,7 +89,7 @@ function LandscapeMesh({ data, meshRef, showWireframe = true }: LandscapeMeshPro
     const colorArray: number[] = []
     for (let i = 0; i < positions.count; i++) {
       const z = positions.getZ(i)
-      const normalizedZ = z / HEIGHT_SCALE
+      const normalizedZ = z / heightScale
       
       let r: number, g: number, b: number
       if (normalizedZ < 0.25) {
@@ -107,7 +108,7 @@ function LandscapeMesh({ data, meshRef, showWireframe = true }: LandscapeMeshPro
     geo.setAttribute('color', new THREE.Float32BufferAttribute(colorArray, 3))
     
     return geo
-  }, [data])
+  }, [data, heightScale])
   
   const wireframeColor = theme === 'dark' ? '#444444' : '#999999'
   
@@ -134,9 +135,10 @@ interface StartPointMarkerProps {
   x: number
   y: number
   landscapeData: LandscapeData | null
+  heightScale?: number
 }
 
-function StartPointMarker({ x, y, landscapeData }: StartPointMarkerProps) {
+function StartPointMarker({ x, y, landscapeData, heightScale = HEIGHT_SCALE }: StartPointMarkerProps) {
   if (!landscapeData) return null
   
   const [rangeMin, rangeMax] = landscapeData.x_range
@@ -159,10 +161,10 @@ function StartPointMarker({ x, y, landscapeData }: StartPointMarkerProps) {
   const zMax = Math.max(...zFlat)
   const zRange = zMax - zMin
   
-  const z00 = (landscapeData.z[row][col] - zMin) / zRange * HEIGHT_SCALE
-  const z01 = (landscapeData.z[row][Math.min(col + 1, resolution - 1)] - zMin) / zRange * HEIGHT_SCALE
-  const z10 = (landscapeData.z[Math.min(row + 1, resolution - 1)][col] - zMin) / zRange * HEIGHT_SCALE
-  const z11 = (landscapeData.z[Math.min(row + 1, resolution - 1)][Math.min(col + 1, resolution - 1)] - zMin) / zRange * HEIGHT_SCALE
+  const z00 = (landscapeData.z[row][col] - zMin) / zRange * heightScale
+  const z01 = (landscapeData.z[row][Math.min(col + 1, resolution - 1)] - zMin) / zRange * heightScale
+  const z10 = (landscapeData.z[Math.min(row + 1, resolution - 1)][col] - zMin) / zRange * heightScale
+  const z11 = (landscapeData.z[Math.min(row + 1, resolution - 1)][Math.min(col + 1, resolution - 1)] - zMin) / zRange * heightScale
   
   const fx = normalizedX * (resolution - 1) - col
   const fy = normalizedY * (resolution - 1) - row
@@ -192,9 +194,10 @@ interface TrajectoryLinesProps {
   landscapeData: LandscapeData | null
   currentStep: number
   showTrails: boolean
+  heightScale?: number
 }
 
-function TrajectoryLines({ trajectories, landscapeData, currentStep, showTrails }: TrajectoryLinesProps) {
+function TrajectoryLines({ trajectories, landscapeData, currentStep, showTrails, heightScale = HEIGHT_SCALE }: TrajectoryLinesProps) {
   if (!landscapeData || !showTrails || !trajectories || Object.keys(trajectories).length === 0) return null
   
   const [rangeMin, rangeMax] = landscapeData.x_range
@@ -218,7 +221,7 @@ function TrajectoryLines({ trajectories, landscapeData, currentStep, showTrails 
         const linePoints: [number, number, number][] = visiblePoints.map(p => {
           const worldX = ((p.x - rangeMin) / rangeSize - 0.5) * 10
           const worldZ = -((p.y - rangeMin) / rangeSize - 0.5) * 10
-          const worldY = ((p.z - zMin) / zRange) * HEIGHT_SCALE + 0.05
+          const worldY = ((p.z - zMin) / zRange) * heightScale + 0.05
           return [worldX, worldY, worldZ]
         })
         
@@ -237,7 +240,14 @@ function TrajectoryLines({ trajectories, landscapeData, currentStep, showTrails 
   )
 }
 
-function OptimizerBalls({ trajectories, landscapeData, currentStep }: Omit<TrajectoryLinesProps, 'showTrails'>) {
+interface OptimizerBallsProps {
+  trajectories: Record<string, Array<{ x: number; y: number; z: number }>>
+  landscapeData: LandscapeData | null
+  currentStep: number
+  heightScale?: number
+}
+
+function OptimizerBalls({ trajectories, landscapeData, currentStep, heightScale = HEIGHT_SCALE }: OptimizerBallsProps) {
   const enabled = useOptimizerStore(state => state.enabled)
   
   if (!landscapeData || !trajectories || Object.keys(trajectories).length === 0) return null
@@ -260,7 +270,7 @@ function OptimizerBalls({ trajectories, landscapeData, currentStep }: Omit<Traje
         
         const worldX = ((p.x - rangeMin) / rangeSize - 0.5) * 10
         const worldZ = -((p.y - rangeMin) / rangeSize - 0.5) * 10
-        const worldY = ((p.z - zMin) / zRange) * HEIGHT_SCALE + 0.1
+        const worldY = ((p.z - zMin) / zRange) * heightScale + 0.1
         
         const color = OPTIMIZER_COLORS[optimizer] || '#ffffff'
         
@@ -415,6 +425,12 @@ function Scene() {
   const landscapeMeshRef = useRef<THREE.Mesh>(null)
   const orbitControlsRef = useRef<any>(null)
   
+  // Calculate effective height scale based on vertical_scale parameter
+  const effectiveHeightScale = useMemo(() => {
+    const verticalScale = manifoldParams.vertical_scale ?? 1.0
+    return HEIGHT_SCALE * verticalScale
+  }, [manifoldParams.vertical_scale])
+  
   const landscapeData = useMemo(() => {
     return generateManifoldLandscape(
       currentManifoldId,
@@ -442,10 +458,10 @@ function Scene() {
       <gridHelper args={[20, 20, gridColor1, gridColor2]} />
       
       {/* Landscape */}
-      <LandscapeMesh data={landscapeData} meshRef={landscapeMeshRef} showWireframe={showManifoldMesh} />
+      <LandscapeMesh data={landscapeData} meshRef={landscapeMeshRef} showWireframe={showManifoldMesh} heightScale={effectiveHeightScale} />
       
       {/* Start point marker */}
-      <StartPointMarker x={startX} y={startY} landscapeData={landscapeData} />
+      <StartPointMarker x={startX} y={startY} landscapeData={landscapeData} heightScale={effectiveHeightScale} />
       
       {/* Trajectory lines */}
       <TrajectoryLines 
@@ -453,6 +469,7 @@ function Scene() {
         landscapeData={landscapeData}
         currentStep={currentStep}
         showTrails={showTrails}
+        heightScale={effectiveHeightScale}
       />
       
       {/* Optimizer balls */}
@@ -460,6 +477,7 @@ function Scene() {
         trajectories={trajectories}
         landscapeData={landscapeData}
         currentStep={currentStep}
+        heightScale={effectiveHeightScale}
       />
       
       {/* Camera controls */}

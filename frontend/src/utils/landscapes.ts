@@ -12,10 +12,16 @@ export interface LandscapeData {
 }
 
 export interface ManifoldParams {
+  // Gaussian wells params
   global_scale?: number
   well_width?: number
   well_depth_scale?: number
   num_wells?: number
+  // Ackley params
+  a?: number
+  b?: number
+  c_scale?: number
+  vertical_scale?: number
 }
 
 /**
@@ -71,15 +77,13 @@ function customMultimodal(
 /**
  * Ackley function - highly multimodal with deep global minimum
  */
-function ackley(x: number, y: number): number {
-  const a = 20
-  const b = 0.2
-  const c = 2 * Math.PI
+function ackley(x: number, y: number, a = 20, b = 0.2, c_scale = 1.0, vertical_scale = 1.0): number {
+  const c = 2 * Math.PI * c_scale
   
   const term1 = -a * Math.exp(-b * Math.sqrt(0.5 * (x * x + y * y)))
   const term2 = -Math.exp(0.5 * (Math.cos(c * x) + Math.cos(c * y)))
   
-  return term1 + term2 + a + Math.E
+  return (term1 + term2 + a + Math.E) * vertical_scale
 }
 
 type ManifoldFunction = (x: number, y: number, ...args: number[]) => number
@@ -135,6 +139,15 @@ export function generateManifoldLandscape(
           params.well_depth_scale ?? -1.5,
           params.num_wells ?? 3
         )
+      } else if (params && manifoldId === 'ackley') {
+        zVal = ackley(
+          xVals[j],
+          yVals[i],
+          params.a ?? 20,
+          params.b ?? 0.2,
+          params.c_scale ?? 1.0,
+          params.vertical_scale ?? 1.0
+        )
       } else {
         zVal = func(xVals[j], yVals[i])
       }
@@ -164,6 +177,16 @@ export function getManifoldZValue(
       params.well_width ?? 3.5,
       params.well_depth_scale ?? -1.5,
       params.num_wells ?? 3
+    )
+  }
+  
+  if (params && manifoldId === 'ackley') {
+    return ackley(
+      x, y,
+      params.a ?? 20,
+      params.b ?? 0.2,
+      params.c_scale ?? 1.0,
+      params.vertical_scale ?? 1.0
     )
   }
   

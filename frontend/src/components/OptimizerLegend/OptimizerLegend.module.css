@@ -46,6 +46,34 @@
   font-family: 'Courier New', Courier, monospace;
 }
 
+.ghost {
+  opacity: 0.35;
+  border-style: dashed;
+  border-width: 2px;
+  box-shadow: none;
+  pointer-events: none;
+  transform: none;
+  transition: opacity 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.snapActive {
+  opacity: 0.6;
+  border-color: var(--text-accent);
+  border-width: 2px;
+  animation: ghostPulse 1s ease-in-out infinite;
+}
+
+@keyframes ghostPulse {
+  0%, 100% {
+    opacity: 0.6;
+    box-shadow: 0 0 8px var(--text-accent);
+  }
+  50% {
+    opacity: 0.8;
+    box-shadow: 0 0 16px var(--text-accent);
+  }
+}
+
 /* Mobile responsive */
 @media (max-width: 768px) {
   .legend {

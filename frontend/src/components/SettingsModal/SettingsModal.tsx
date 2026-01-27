@@ -8,6 +8,8 @@ export function SettingsModal() {
   
   const showTrails = useAnimationStore(state => state.showTrails)
   const setShowTrails = useAnimationStore(state => state.setShowTrails)
+  const showManifoldMesh = useAnimationStore(state => state.showManifoldMesh)
+  const setShowManifoldMesh = useAnimationStore(state => state.setShowManifoldMesh)
   
   // Close on escape key
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -56,14 +58,21 @@ export function SettingsModal() {
                 Display the optimization path as a colored line following each optimizer's trajectory.
               </p>
             </div>
-          </div>
-          
-          {/* Placeholder for future settings */}
-          <div className={styles.section}>
-            <h3 className={styles.sectionTitle}>More Settings Coming Soon</h3>
-            <p className={styles.placeholder}>
-              Additional settings and customization options will be added here.
-            </p>
+            
+            <div className={styles.settingItem}>
+              <label className={styles.checkboxLabel}>
+                <input
+                  type="checkbox"
+                  checked={showManifoldMesh}
+                  onChange={(e) => setShowManifoldMesh(e.target.checked)}
+                />
+                <span className={styles.checkmark} />
+                <span className={styles.labelText}>Show Manifold Mesh</span>
+              </label>
+              <p className={styles.settingDescription}>
+                Display the wireframe grid lines overlaying the manifold surface.
+              </p>
+            </div>
           </div>
         </div>
       </div>

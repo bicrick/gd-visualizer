@@ -11,6 +11,7 @@ interface AnimationStoreState {
   
   // Display options
   showTrails: boolean
+  showManifoldMesh: boolean
   
   // Actions
   play: () => void
@@ -20,6 +21,7 @@ interface AnimationStoreState {
   setTotalSteps: (steps: number) => void
   setSpeed: (speed: number) => void
   setShowTrails: (show: boolean) => void
+  setShowManifoldMesh: (show: boolean) => void
   incrementStep: () => void
 }
 
@@ -30,6 +32,7 @@ export const useAnimationStore = create<AnimationStoreState>((set, get) => ({
   totalSteps: 0,
   speed: 1.0,
   showTrails: true,
+  showManifoldMesh: true,
   
   // Actions
   play: () => set({ state: 'playing' }),
@@ -40,6 +43,7 @@ export const useAnimationStore = create<AnimationStoreState>((set, get) => ({
   setTotalSteps: (steps) => set({ totalSteps: steps }),
   setSpeed: (speed) => set({ speed }),
   setShowTrails: (show) => set({ showTrails: show }),
+  setShowManifoldMesh: (show) => set({ showManifoldMesh: show }),
   
   incrementStep: () => {
     const { currentStep, totalSteps } = get()

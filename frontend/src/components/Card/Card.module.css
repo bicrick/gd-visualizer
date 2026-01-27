@@ -25,7 +25,7 @@
 
 .headerContent {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 12px;
   flex: 1;
   min-width: 0;
@@ -40,7 +40,7 @@
 }
 
 .summary {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--accent-primary);
   font-weight: 600;
   white-space: nowrap;

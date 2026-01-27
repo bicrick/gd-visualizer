@@ -11,9 +11,10 @@ const HEIGHT_SCALE = 2.0
 
 interface LandscapeMeshProps {
   data: LandscapeData
+  showWireframe?: boolean
 }
 
-function LandscapeMesh({ data, meshRef }: LandscapeMeshProps & { meshRef?: React.RefObject<THREE.Mesh> }) {
+function LandscapeMesh({ data, meshRef, showWireframe = true }: LandscapeMeshProps & { meshRef?: React.RefObject<THREE.Mesh> }) {
   const theme = useUIStore(state => state.theme)
   const pickingMode = useUIStore(state => state.pickingMode)
   const setPickingMode = useUIStore(state => state.setPickingMode)
@@ -120,9 +121,11 @@ function LandscapeMesh({ data, meshRef }: LandscapeMeshProps & { meshRef?: React
       >
         <meshPhongMaterial vertexColors side={THREE.DoubleSide} flatShading={false} />
       </mesh>
-      <mesh geometry={geometry.clone()} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]}>
-        <meshBasicMaterial color={wireframeColor} wireframe transparent opacity={0.15} depthWrite={false} />
-      </mesh>
+      {showWireframe && (
+        <mesh geometry={geometry.clone()} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]}>
+          <meshBasicMaterial color={wireframeColor} wireframe transparent opacity={0.15} depthWrite={false} />
+        </mesh>
+      )}
     </>
   )
 }
@@ -422,6 +425,7 @@ function Scene() {
   const trajectories = useSceneStore(state => state.trajectories)
   const currentStep = useAnimationStore(state => state.currentStep)
   const showTrails = useAnimationStore(state => state.showTrails)
+  const showManifoldMesh = useAnimationStore(state => state.showManifoldMesh)
   
   const landscapeMeshRef = useRef<THREE.Mesh>(null)
   const orbitControlsRef = useRef<any>(null)
@@ -453,7 +457,7 @@ function Scene() {
       <gridHelper args={[20, 20, gridColor1, gridColor2]} />
       
       {/* Landscape */}
-      <LandscapeMesh data={landscapeData} meshRef={landscapeMeshRef} />
+      <LandscapeMesh data={landscapeData} meshRef={landscapeMeshRef} showWireframe={showManifoldMesh} />
       
       {/* Start point marker */}
       <StartPointMarker x={startX} y={startY} landscapeData={landscapeData} />

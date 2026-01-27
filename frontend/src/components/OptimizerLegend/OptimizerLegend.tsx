@@ -10,6 +10,7 @@ export function OptimizerLegend() {
   const enabled = useOptimizerStore(state => state.enabled)
   const [isDragging, setIsDragging] = useState(false)
   const [isDocked, setIsDocked] = useState(true)
+  const [isInSnapZone, setIsInSnapZone] = useState(false)
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const dragRef = useRef<HTMLDivElement>(null)
   const dragStartRef = useRef({ x: 0, y: 0, elementX: 0, elementY: 0 })
@@ -55,12 +56,21 @@ export function OptimizerLegend() {
       const constrainedY = Math.max(0, Math.min(newY, maxY))
       
       setPosition({ x: constrainedX, y: constrainedY })
+      
+      // Check if in snap zone for visual feedback
+      const centerX = constrainedX + rect.width / 2
+      const viewportCenterX = window.innerWidth / 2
+      const isNearTop = constrainedY < SNAP_ZONE_TOP
+      const isNearCenter = Math.abs(centerX - viewportCenterX) < SNAP_ZONE_HORIZONTAL
+      
+      setIsInSnapZone(isNearTop && isNearCenter)
     }
     
     const handleMouseUp = (e: MouseEvent) => {
       if (!isDragging || !dragRef.current) return
       
       setIsDragging(false)
+      setIsInSnapZone(false)
       
       // Check if we should snap back to docked position
       const rect = dragRef.current.getBoundingClientRect()
@@ -145,22 +155,52 @@ export function OptimizerLegend() {
     zIndex: 100
   }
   
+  // Ghost element styling (shown at docked position while dragging)
+  const dockedPos = getDockedPosition()
+  const ghostStyle = {
+    position: 'fixed' as const,
+    left: `${dockedPos.x}px`,
+    top: `${dockedPos.y}px`,
+    zIndex: 99
+  }
+  
+  const ghostClasses = [
+    styles.legend,
+    styles.ghost,
+    isInSnapZone && styles.snapActive
+  ].filter(Boolean).join(' ')
+  
   return (
-    <div 
-      ref={dragRef}
-      className={legendClasses}
-      style={legendStyle}
-      onMouseDown={handleMouseDown}
-    >
-      {enabledOptimizers.map(({ name, color, displayName }) => (
-        <div key={name} className={styles.item}>
-          <div 
-            className={styles.colorDot} 
-            style={{ backgroundColor: color }}
-          />
-          <span className={styles.name}>{displayName}</span>
-        </div>
-      ))}
-    </div>
+    <>
+      {/* Ghost outline shown at docked position while dragging */}
+      {isDragging && dragRef.current && (
+        <div 
+          className={ghostClasses}
+          style={{
+            ...ghostStyle,
+            width: `${dragRef.current.offsetWidth}px`,
+            height: `${dragRef.current.offsetHeight}px`
+          }}
+        />
+      )}
+      
+      {/* Actual draggable legend */}
+      <div 
+        ref={dragRef}
+        className={legendClasses}
+        style={legendStyle}
+        onMouseDown={handleMouseDown}
+      >
+        {enabledOptimizers.map(({ name, color, displayName }) => (
+          <div key={name} className={styles.item}>
+            <div 
+              className={styles.colorDot} 
+              style={{ backgroundColor: color }}
+            />
+            <span className={styles.name}>{displayName}</span>
+          </div>
+        ))}
+      </div>
+    </>
   )
 }

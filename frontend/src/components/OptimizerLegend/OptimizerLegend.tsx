@@ -31,11 +31,6 @@ export function OptimizerLegend() {
       displayName: name.charAt(0).toUpperCase() + name.slice(1)
     }))
   
-  // Trigger re-render after mount to ensure centered position is calculated with correct dimensions
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => {
-    setMounted(true)
-  }, [])
   
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -66,7 +61,7 @@ export function OptimizerLegend() {
       setIsInSnapZone(isNearTop && isNearCenter)
     }
     
-    const handleMouseUp = (e: MouseEvent) => {
+    const handleMouseUp = (_e: MouseEvent) => {
       if (!isDragging || !dragRef.current) return
       
       setIsDragging(false)

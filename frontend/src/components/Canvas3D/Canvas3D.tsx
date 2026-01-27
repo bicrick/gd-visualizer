@@ -328,22 +328,7 @@ function KeyboardControls({ orbitControlsRef }: KeyboardControlsProps) {
       
       // Log camera view parameters when 'V' is pressed
       if (key === 'v' && orbitControlsRef.current) {
-        const position = camera.position
-        const target = orbitControlsRef.current.target
-        
-        console.log('=== CAMERA VIEW PARAMETERS ===')
-        console.log('Camera Position:', {
-          x: position.x.toFixed(2),
-          y: position.y.toFixed(2),
-          z: position.z.toFixed(2)
-        })
-        console.log('Camera Target:', {
-          x: target.x.toFixed(2),
-          y: target.y.toFixed(2),
-          z: target.z.toFixed(2)
-        })
-        console.log('Camera FOV:', camera.fov)
-        console.log('=============================')
+        // Debug view parameters (press 'v' to log)
         event.preventDefault()
         return
       }

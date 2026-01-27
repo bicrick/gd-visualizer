@@ -28,9 +28,7 @@ function App() {
         <ManifoldCard />
       </div>
       
-      <div className={styles.topCenter}>
-        <OptimizerLegend />
-      </div>
+      <OptimizerLegend />
       
       <div className={styles.topRight}>
         <ManifoldParamsCard />

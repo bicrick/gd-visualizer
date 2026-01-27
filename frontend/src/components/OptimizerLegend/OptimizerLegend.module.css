@@ -9,6 +9,19 @@
   padding: 12px 16px;
   box-shadow: 0 4px 12px var(--shadow-heavy);
   min-height: 41px;
+  transition: transform 0.3s ease, box-shadow 0.2s ease;
+}
+
+.draggable {
+  cursor: grab;
+}
+
+.dragging {
+  cursor: grabbing;
+  user-select: none;
+  box-shadow: 0 8px 24px var(--shadow-heavy);
+  transform: scale(1.02);
+  transition: box-shadow 0.2s ease, transform 0.1s ease;
 }
 
 .item {

@@ -333,7 +333,7 @@ export function OptimizersCard() {
             label="Moment of Inertia"
             value={wheel.momentOfInertia}
             min={0.1}
-            max={5.0}
+            max={15}
             step={0.1}
             onChange={(v) => setOptimizerParam('wheel', 'momentOfInertia', v)}
             format={(v) => v.toFixed(1)}

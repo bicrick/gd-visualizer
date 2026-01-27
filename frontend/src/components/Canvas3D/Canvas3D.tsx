@@ -349,9 +349,6 @@ function Scene() {
       {/* Grid */}
       <gridHelper args={[20, 20, gridColor1, gridColor2]} />
       
-      {/* Axes */}
-      <axesHelper args={[5]} />
-      
       {/* Landscape */}
       <LandscapeMesh data={landscapeData} meshRef={landscapeMeshRef} />
       

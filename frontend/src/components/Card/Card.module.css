@@ -34,14 +34,15 @@
 
 .title {
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 400;
   color: var(--text-secondary);
   letter-spacing: 0.5px;
+  font-family: 'SF Mono', SFMono-Regular, ui-monospace, 'Monaco', 'Menlo', monospace;
 }
 
 .summary {
   font-size: 13px;
-  color: var(--accent-primary);
+  color: var(--text-primary);
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;

@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { useAnimationStore } from './animationStore'
 
 export interface OptimizerParams {
   learningRate: number
@@ -118,13 +119,21 @@ export const useOptimizerStore = create<OptimizerState>((set, get) => ({
   activePanelOptimizer: null,
   
   // Actions
-  toggleOptimizer: (name, enabled) => set((state) => ({
-    enabled: { ...state.enabled, [name]: enabled }
-  })),
+  toggleOptimizer: (name, enabled) => {
+    // Stop animation when optimizer enabled state changes
+    useAnimationStore.getState().stop()
+    set((state) => ({
+      enabled: { ...state.enabled, [name]: enabled }
+    }))
+  },
   
-  setOptimizerParam: (optimizer, param, value) => set((state) => ({
-    [optimizer]: { ...state[optimizer], [param]: value }
-  })),
+  setOptimizerParam: (optimizer, param, value) => {
+    // Stop animation when optimizer parameters change
+    useAnimationStore.getState().stop()
+    set((state) => ({
+      [optimizer]: { ...state[optimizer], [param]: value }
+    }))
+  },
   
   openOptimizerPanel: (name) => set({ activePanelOptimizer: name }),
   

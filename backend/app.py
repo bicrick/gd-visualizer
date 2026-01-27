@@ -430,5 +430,7 @@ if __name__ == '__main__':
     # Allow connections from any host when running in Docker
     # Use PORT environment variable for Cloud Run compatibility
     port = int(os.environ.get('PORT', 5001))
-    app.run(debug=False, host='0.0.0.0', port=port)
+    # Enable debug mode based on FLASK_DEBUG environment variable for hot reload in development
+    debug_mode = os.environ.get('FLASK_DEBUG', '0') == '1'
+    app.run(debug=debug_mode, host='0.0.0.0', port=port)
 

@@ -17,6 +17,8 @@ export function AnimationCard() {
   const setComputing = useSceneStore(state => state.setComputing)
   const lastOptimizationStartPos = useSceneStore(state => state.lastOptimizationStartPos)
   const setLastOptimizationPos = useSceneStore(state => state.setLastOptimizationPos)
+  const lastOptimizationConfig = useSceneStore(state => state.lastOptimizationConfig)
+  const setLastOptimizationConfig = useSceneStore(state => state.setLastOptimizationConfig)
   const clearTrajectories = useSceneStore(state => state.clearTrajectories)
   
   const animationState = useAnimationStore(state => state.state)
@@ -42,6 +44,51 @@ export function AnimationCard() {
       setPickingMode(false)
     }
   }, [animationState, pickingMode, setPickingMode])
+  
+  // Deep equality check for objects
+  const deepEqual = (obj1: unknown, obj2: unknown): boolean => {
+    if (obj1 === obj2) return true
+    if (obj1 == null || obj2 == null) return false
+    if (typeof obj1 !== 'object' || typeof obj2 !== 'object') return false
+    
+    const keys1 = Object.keys(obj1 as Record<string, unknown>)
+    const keys2 = Object.keys(obj2 as Record<string, unknown>)
+    
+    if (keys1.length !== keys2.length) return false
+    
+    for (const key of keys1) {
+      const val1 = (obj1 as Record<string, unknown>)[key]
+      const val2 = (obj2 as Record<string, unknown>)[key]
+      
+      if (typeof val1 === 'object' && typeof val2 === 'object') {
+        if (!deepEqual(val1, val2)) return false
+      } else if (val1 !== val2) {
+        return false
+      }
+    }
+    
+    return true
+  }
+  
+  // Check if configuration has changed since last optimization
+  const hasConfigChanged = useCallback(() => {
+    if (!lastOptimizationConfig) return true
+    
+    // Compare manifold
+    if (currentManifoldId !== lastOptimizationConfig.manifoldId) return true
+    
+    // Compare manifold params
+    if (!deepEqual(manifoldParams, lastOptimizationConfig.manifoldParams)) return true
+    
+    // Compare optimizer enabled state
+    if (!deepEqual(enabled, lastOptimizationConfig.optimizerEnabled)) return true
+    
+    // Compare optimizer params
+    const currentParams = getOptimizerParams()
+    if (!deepEqual(currentParams, lastOptimizationConfig.optimizerParams)) return true
+    
+    return false
+  }, [currentManifoldId, manifoldParams, enabled, getOptimizerParams, lastOptimizationConfig])
   
   const runOptimizationHandler = useCallback(async () => {
     setLoading(true, 'Computing trajectories...')
@@ -107,13 +154,21 @@ export function AnimationCard() {
       // Save the position used for this optimization
       setLastOptimizationPos(startX, startY)
       
+      // Save the configuration used for this optimization
+      setLastOptimizationConfig({
+        manifoldId: currentManifoldId,
+        manifoldParams: { ...manifoldParams },
+        optimizerEnabled: { ...enabled },
+        optimizerParams: getOptimizerParams()
+      })
+      
     } catch (error) {
       console.error('Optimization failed:', error)
     } finally {
       setLoading(false)
       setComputing(false)
     }
-  }, [currentManifoldId, startX, startY, enabled, manifoldParams, getOptimizerParams, setTrajectories, setTotalSteps, setCurrentStep, setLoading, setComputing, setLastOptimizationPos])
+  }, [currentManifoldId, startX, startY, enabled, manifoldParams, getOptimizerParams, setTrajectories, setTotalSteps, setCurrentStep, setLoading, setComputing, setLastOptimizationPos, setLastOptimizationConfig])
   
   const handlePlayPause = useCallback(async () => {
     // Prevent spam clicks - if already computing, do nothing
@@ -128,8 +183,8 @@ export function AnimationCard() {
         Math.abs(startX - lastOptimizationStartPos.x) > threshold ||
         Math.abs(startY - lastOptimizationStartPos.y) > threshold
       
-      // Run optimization if no trajectories exist OR position has changed
-      if (totalSteps === 0 || positionChanged) {
+      // Run optimization if: no trajectories, position changed, OR config changed
+      if (totalSteps === 0 || positionChanged || hasConfigChanged()) {
         // Clear old trajectories and reset animation state before computing new ones
         stop()
         clearTrajectories()
@@ -139,7 +194,7 @@ export function AnimationCard() {
     } else {
       pause()
     }
-  }, [isComputing, animationState, totalSteps, startX, startY, lastOptimizationStartPos, play, pause, stop, clearTrajectories, runOptimizationHandler])
+  }, [isComputing, animationState, totalSteps, startX, startY, lastOptimizationStartPos, play, pause, stop, clearTrajectories, runOptimizationHandler, hasConfigChanged])
   
   
   const summaryText = isComputing

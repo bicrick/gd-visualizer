@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { useAnimationStore } from './animationStore'
 
 export interface Manifold {
   id: string
@@ -31,6 +32,14 @@ interface SceneState {
   // Track last position used for optimization
   lastOptimizationStartPos: { x: number; y: number } | null
   
+  // Track last optimization configuration
+  lastOptimizationConfig: {
+    manifoldId: string
+    manifoldParams: Record<string, number>
+    optimizerEnabled: Record<string, boolean>
+    optimizerParams: Record<string, unknown>
+  } | null
+  
   // Trajectories (from optimization)
   trajectories: Record<string, Array<{ x: number; y: number; z: number }>>
   
@@ -53,6 +62,12 @@ interface SceneState {
   setComputing: (isComputing: boolean) => void
   randomizeStartPosition: () => void
   setLastOptimizationPos: (x: number, y: number) => void
+  setLastOptimizationConfig: (config: {
+    manifoldId: string
+    manifoldParams: Record<string, number>
+    optimizerEnabled: Record<string, boolean>
+    optimizerParams: Record<string, unknown>
+  }) => void
 }
 
 export const useSceneStore = create<SceneState>((set, get) => ({
@@ -64,6 +79,7 @@ export const useSceneStore = create<SceneState>((set, get) => ({
   startX: 0.15,
   startY: -2.22,
   lastOptimizationStartPos: null,
+  lastOptimizationConfig: null,
   trajectories: {},
   isLoading: false,
   loadingMessage: '',
@@ -86,15 +102,20 @@ export const useSceneStore = create<SceneState>((set, get) => ({
         manifoldRange: manifold.default_range,
         trajectories: {}, // Clear trajectories on manifold change
         lastOptimizationStartPos: null,
+        lastOptimizationConfig: null,
         startX: 0.15,
         startY: -2.22,
       })
     }
   },
   
-  setManifoldParam: (name, value) => set((state) => ({
-    manifoldParams: { ...state.manifoldParams, [name]: value }
-  })),
+  setManifoldParam: (name, value) => {
+    // Stop animation when manifold parameters change
+    useAnimationStore.getState().stop()
+    set((state) => ({
+      manifoldParams: { ...state.manifoldParams, [name]: value }
+    }))
+  },
   
   setManifoldParams: (params) => set({ manifoldParams: params }),
   
@@ -108,7 +129,7 @@ export const useSceneStore = create<SceneState>((set, get) => ({
     )
     
     if (shouldClear) {
-      set({ startX: x, startY: y, trajectories: {}, lastOptimizationStartPos: null })
+      set({ startX: x, startY: y, trajectories: {}, lastOptimizationStartPos: null, lastOptimizationConfig: null })
     } else {
       set({ startX: x, startY: y })
     }
@@ -116,7 +137,7 @@ export const useSceneStore = create<SceneState>((set, get) => ({
   
   setTrajectories: (trajectories) => set({ trajectories }),
   
-  clearTrajectories: () => set({ trajectories: {}, lastOptimizationStartPos: null }),
+  clearTrajectories: () => set({ trajectories: {}, lastOptimizationStartPos: null, lastOptimizationConfig: null }),
   
   setLoading: (isLoading, message = '') => set({ isLoading, loadingMessage: message }),
   
@@ -130,8 +151,11 @@ export const useSceneStore = create<SceneState>((set, get) => ({
       startY: min + Math.random() * range,
       trajectories: {}, // Clear old trajectories
       lastOptimizationStartPos: null,
+      lastOptimizationConfig: null,
     })
   },
   
   setLastOptimizationPos: (x, y) => set({ lastOptimizationStartPos: { x, y } }),
+  
+  setLastOptimizationConfig: (config) => set({ lastOptimizationConfig: config }),
 }))

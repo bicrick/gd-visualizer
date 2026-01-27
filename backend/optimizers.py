@@ -306,6 +306,140 @@ def adam_optimizer(loss_func, initial_params, learning_rate, n_iterations,
     return trajectory
 
 
+def wheel_optimizer(loss_func, initial_params, learning_rate, n_iterations,
+                    beta=0.95, I=1.0, eps=1e-8, dataset=None, seed=42,
+                    convergence_threshold=1e-6, max_iterations=10000, bounds=None):
+    """
+    Wheel Optimizer - models optimization as a wheel rolling down the loss landscape.
+    
+    Unlike standard momentum, a rolling wheel has gyroscopic stability — it resists
+    turning when spinning fast. The gradient affects velocity indirectly through
+    angular momentum rather than directly.
+    
+    State:
+        v: velocity vector (direction and speed of the wheel)
+        L: angular momentum (scalar, how fast the wheel is spinning)
+    
+    The gradient is decomposed into:
+        - Parallel component (along v): affects spin speed (L)
+        - Perpendicular component (across v): tries to turn the wheel, 
+          but is resisted by L/I (gyroscopic resistance)
+    
+    Args:
+        loss_func: Loss function
+        initial_params: Starting point [x, y]
+        learning_rate: Step size
+        n_iterations: Number of optimization steps (or None for convergence-based)
+        beta: Momentum decay factor (0-1), like standard momentum (default 0.95)
+        I: Moment of inertia. Higher = harder to accelerate, more turning resistance (default 1.0)
+        eps: Small constant for numerical stability (default 1e-8)
+        dataset: Training data (not used, kept for API compatibility)
+        seed: Random seed
+        convergence_threshold: Stop if gradient magnitude is below this
+        max_iterations: Maximum iterations for convergence mode
+        bounds: Tuple of (min, max) for parameter bounds, or None for no bounds
+    
+    Returns:
+        List of (x, y, loss) tuples representing the trajectory
+    """
+    np.random.seed(seed)
+    
+    params = np.array(initial_params, dtype=float)
+    v = np.zeros_like(params)  # Velocity vector
+    L = 0.0  # Angular momentum (scalar)
+    trajectory = []
+    
+    # Use convergence mode if n_iterations is None or negative
+    use_convergence = n_iterations is None or n_iterations < 0
+    iterations = max_iterations if use_convergence else n_iterations
+    
+    # Debug output
+    print(f"\n[WHEEL] Starting optimization:")
+    print(f"  Initial params: {params}")
+    print(f"  Learning rate: {learning_rate}, Beta: {beta}, I: {I}")
+    print(f"  Iterations: {iterations if not use_convergence else f'max {iterations} (convergence mode)'}")
+    
+    for i in range(iterations):
+        # Compute loss at current position
+        loss = loss_func(params[0], params[1])
+        trajectory.append((float(params[0]), float(params[1]), float(loss)))
+        
+        # Compute gradient at current parameter position
+        grad = compute_gradient(loss_func, params[0], params[1])
+        
+        # Check convergence (use gradient magnitude)
+        grad_norm = np.linalg.norm(grad)
+        if use_convergence and grad_norm < convergence_threshold:
+            print(f"[WHEEL] Converged at iteration {i}: grad_norm={grad_norm:.6e}")
+            break
+        
+        speed = np.linalg.norm(v)
+        
+        # Debug output for first few iterations
+        if i < 3 or i % 20 == 0:
+            print(f"[WHEEL] Iter {i}: pos=({params[0]:.4f}, {params[1]:.4f}), loss={loss:.4f}, L={L:.4f}, speed={speed:.4f}, grad_norm={grad_norm:.4f}")
+        
+        if speed > eps:
+            # Wheel is moving - decompose gradient into parallel and perpendicular components
+            v_hat = v / speed
+            g_parallel_mag = np.dot(grad, v_hat)
+            g_parallel = g_parallel_mag * v_hat
+            g_perp = grad - g_parallel
+            
+            # Update angular momentum from parallel component
+            # If gradient aligns with velocity, spin faster
+            # If gradient opposes velocity, spin slower
+            L_old = L
+            L = beta * L + g_parallel_mag
+            L = max(L, 0.0)  # L is non-negative; if it hits 0, we've stopped
+            
+            # Update velocity direction
+            # Perpendicular gradient turns us, but resisted by L/I (gyroscopic stability)
+            turn_resistance = (L / I) + eps
+            direction_change = g_perp / turn_resistance
+            direction_change_mag = np.linalg.norm(direction_change)
+            v_hat_new = v_hat + direction_change
+            v_hat_new = v_hat_new / (np.linalg.norm(v_hat_new) + eps)
+            
+            # New speed from rolling constraint
+            speed_new = L / I
+            
+            # Combine direction and speed
+            v = speed_new * v_hat_new
+            
+            # Debug gyroscopic resistance
+            if i < 3 or i % 20 == 0:
+                print(f"    g_parallel={g_parallel_mag:.4f}, g_perp_mag={np.linalg.norm(g_perp):.4f}")
+                print(f"    L: {L_old:.4f} -> {L:.4f}, turn_resist={turn_resistance:.4f}, dir_change_mag={direction_change_mag:.4f}")
+        else:
+            # Cold start: wheel is stationary
+            # Gradient gets it rolling in the gradient direction
+            g_mag = np.linalg.norm(grad)
+            
+            if g_mag > eps:
+                L = g_mag
+                speed_new = L / I
+                v_hat_new = grad / g_mag
+                v = speed_new * v_hat_new
+                if i < 3:
+                    print(f"    Cold start: g_mag={g_mag:.4f}, initial L={L:.4f}, speed={speed_new:.4f}")
+        
+        # Update parameters
+        params = params - learning_rate * v
+        
+        # Check if parameters are within bounds
+        if bounds is not None:
+            bounds_min, bounds_max = bounds
+            if (params[0] < bounds_min or params[0] > bounds_max or 
+                params[1] < bounds_min or params[1] > bounds_max):
+                # Stop optimization if we exit the bounds
+                print(f"[WHEEL] Exited bounds at iteration {i}")
+                break
+    
+    print(f"[WHEEL] Finished: {len(trajectory)} steps, final pos=({params[0]:.4f}, {params[1]:.4f}), L={L:.4f}")
+    return trajectory
+
+
 def find_collision_newton(x0, y0, z0, vx0, vy0, vz0, gravity, dt, loss_func, 
                          gradient_hint=None, loss_hint=None, ball_radius=0.05, max_iters=4):
     """

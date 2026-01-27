@@ -133,11 +133,13 @@ export function AnimationCard() {
       const momentumData = convertTrajectory(result.momentum)
       const adamData = convertTrajectory(result.adam)
       const sgdData = convertTrajectory(result.sgd)
+      const wheelData = convertTrajectory(result.wheel)
       
       if (batchData) trajectories.batch = batchData
       if (momentumData) trajectories.momentum = momentumData
       if (adamData) trajectories.adam = adamData
       if (sgdData) trajectories.sgd = sgdData
+      if (wheelData) trajectories.wheel = wheelData
       
       setTrajectories(trajectories)
       

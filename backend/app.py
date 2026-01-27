@@ -23,7 +23,8 @@ from optimizers import (
     momentum_gradient_descent,
     adam_optimizer,
     ballistic_gradient_descent,
-    ballistic_adam_optimizer
+    ballistic_adam_optimizer,
+    wheel_optimizer
 )
 
 app = Flask(__name__)
@@ -153,7 +154,8 @@ def optimize():
         'momentum': True,
         'adam': True,
         'ballistic': True,
-        'ballistic_adam': True
+        'ballistic_adam': True,
+        'wheel': True
     })
     
     # Get per-optimizer parameters, or fall back to global parameters
@@ -168,7 +170,7 @@ def optimize():
     default_max_iterations = int(data.get('max_iterations', 10000))
     
     # Helper function to get optimizer-specific params
-    def get_optimizer_params(optimizer_name, has_momentum=False, is_adam=False, is_ballistic=False, is_ballistic_adam=False, is_sgd=False):
+    def get_optimizer_params(optimizer_name, has_momentum=False, is_adam=False, is_ballistic=False, is_ballistic_adam=False, is_sgd=False, is_wheel=False):
         params = optimizer_params.get(optimizer_name, {})
         
         if is_sgd:
@@ -225,6 +227,26 @@ def optimize():
                 result['n_iterations'] = -1
             
             return result
+        
+        if is_wheel:
+            # Wheel optimizer has beta (momentum decay) and I (moment of inertia)
+            learning_rate = float(params.get('learningRate', default_learning_rate))
+            n_iterations = int(params.get('iterations', default_n_iterations))
+            use_convergence = params.get('useConvergence', default_use_convergence)
+            convergence_threshold = float(params.get('convergenceThreshold', default_convergence_threshold))
+            max_iterations = int(params.get('maxIterations', default_max_iterations))
+            
+            if use_convergence:
+                n_iterations = -1
+            
+            return {
+                'learning_rate': learning_rate,
+                'n_iterations': n_iterations,
+                'convergence_threshold': convergence_threshold,
+                'max_iterations': max_iterations,
+                'beta': float(params.get('beta', 0.95)),
+                'I': float(params.get('momentOfInertia', 1.0))
+            }
         
         learning_rate = float(params.get('learningRate', default_learning_rate))
         n_iterations = int(params.get('iterations', default_n_iterations))
@@ -392,6 +414,24 @@ def optimize():
             bounds=bounds
         )
         optimizer_timings['ballistic_adam'] = time.time() - start_time
+    
+    if enabled_optimizers.get('wheel', False):
+        params = get_optimizer_params('wheel', is_wheel=True)
+        start_time = time.time()
+        result['wheel'] = wheel_optimizer(
+            actual_loss_function,
+            initial_params,
+            params['learning_rate'],
+            params['n_iterations'],
+            beta=params['beta'],
+            I=params['I'],
+            dataset=dataset,
+            seed=seed,
+            convergence_threshold=params['convergence_threshold'],
+            max_iterations=params['max_iterations'],
+            bounds=bounds
+        )
+        optimizer_timings['wheel'] = time.time() - start_time
     
     # Calculate total time
     total_time = time.time() - start_total

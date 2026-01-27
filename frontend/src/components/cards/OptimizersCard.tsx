@@ -81,6 +81,7 @@ export function OptimizersCard() {
   const momentum = useOptimizerStore(state => state.momentum)
   const adam = useOptimizerStore(state => state.adam)
   const sgd = useOptimizerStore(state => state.sgd)
+  const wheel = useOptimizerStore(state => state.wheel)
   const toggleOptimizer = useOptimizerStore(state => state.toggleOptimizer)
   const setOptimizerParam = useOptimizerStore(state => state.setOptimizerParam)
   
@@ -302,6 +303,83 @@ export function OptimizersCard() {
               Run Until Convergence
             </label>
           </div>
+        </OptimizerSection>
+        
+        {/* Wheel */}
+        <OptimizerSection
+          displayName="Wheel"
+          color={OPTIMIZER_COLORS.wheel}
+          enabled={enabled.wheel}
+          onToggle={(v) => toggleOptimizer('wheel', v)}
+        >
+          <SliderControl
+            label="Learning Rate"
+            value={wheel.learningRate}
+            min={0.001}
+            max={0.1}
+            step={0.001}
+            onChange={(v) => setOptimizerParam('wheel', 'learningRate', v)}
+          />
+          <SliderControl
+            label="Beta (Momentum Decay)"
+            value={wheel.beta}
+            min={0.8}
+            max={0.99}
+            step={0.01}
+            onChange={(v) => setOptimizerParam('wheel', 'beta', v)}
+            format={(v) => v.toFixed(2)}
+          />
+          <SliderControl
+            label="Moment of Inertia"
+            value={wheel.momentOfInertia}
+            min={0.1}
+            max={5.0}
+            step={0.1}
+            onChange={(v) => setOptimizerParam('wheel', 'momentOfInertia', v)}
+            format={(v) => v.toFixed(1)}
+          />
+          <div className={styles.checkboxControl}>
+            <label>
+              <input
+                type="checkbox"
+                checked={wheel.useConvergence}
+                onChange={(e) => setOptimizerParam('wheel', 'useConvergence', e.target.checked)}
+              />
+              Run Until Convergence
+            </label>
+          </div>
+          {wheel.useConvergence ? (
+            <>
+              <SliderControl
+                label="Max Iterations"
+                value={wheel.maxIterations}
+                min={500}
+                max={20000}
+                step={500}
+                onChange={(v) => setOptimizerParam('wheel', 'maxIterations', v)}
+                format={(v) => v.toString()}
+              />
+              <SliderControl
+                label="Convergence Threshold"
+                value={wheel.convergenceThreshold}
+                min={0.000001}
+                max={0.01}
+                step={0.000001}
+                onChange={(v) => setOptimizerParam('wheel', 'convergenceThreshold', v)}
+                format={(v) => v.toExponential(0)}
+              />
+            </>
+          ) : (
+            <SliderControl
+              label="Iterations"
+              value={wheel.iterations}
+              min={50}
+              max={500}
+              step={10}
+              onChange={(v) => setOptimizerParam('wheel', 'iterations', v)}
+              format={(v) => v.toString()}
+            />
+          )}
         </OptimizerSection>
       </div>
     </Card>

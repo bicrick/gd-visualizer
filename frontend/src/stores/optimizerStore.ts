@@ -26,6 +26,11 @@ export interface SgdParams extends OptimizerParams {
   noiseDecay: number      // Decay factor per iteration (allows settling over time)
 }
 
+export interface WheelParams extends OptimizerParams {
+  beta: number            // Momentum decay (like standard momentum)
+  momentOfInertia: number // I: Moment of inertia (resistance to acceleration and turning)
+}
+
 interface OptimizerState {
   // Enabled state for each optimizer
   enabled: {
@@ -33,6 +38,7 @@ interface OptimizerState {
     momentum: boolean
     adam: boolean
     sgd: boolean
+    wheel: boolean
   }
   
   // Parameters for each optimizer
@@ -40,6 +46,7 @@ interface OptimizerState {
   momentum: MomentumParams
   adam: AdamParams
   sgd: SgdParams
+  wheel: WheelParams
   
   // Panel state
   activePanelOptimizer: string | null
@@ -63,6 +70,7 @@ export const OPTIMIZER_COLORS: Record<string, string> = {
   momentum: '#44ff44',
   adam: '#ff8800',
   sgd: '#ff4444',
+  wheel: '#00cccc',
 }
 
 export const useOptimizerStore = create<OptimizerState>((set, get) => ({
@@ -72,6 +80,7 @@ export const useOptimizerStore = create<OptimizerState>((set, get) => ({
     momentum: true,
     adam: true,
     sgd: false,
+    wheel: false,
   },
   
   // Initial parameters for each optimizer
@@ -115,6 +124,16 @@ export const useOptimizerStore = create<OptimizerState>((set, get) => ({
     noiseDecay: 0.995,    // Noise reduces to ~60% at 100 steps, ~8% at 500 steps
   },
   
+  wheel: {
+    learningRate: 0.01,
+    iterations: 100,
+    useConvergence: true,
+    maxIterations: 10000,
+    convergenceThreshold: 1e-4,
+    beta: 0.95,           // Momentum decay (like standard momentum)
+    momentOfInertia: 1.0, // Higher = harder to accelerate, more turning resistance
+  },
+  
   // Initial panel state
   activePanelOptimizer: null,
   
@@ -146,5 +165,6 @@ export const useOptimizerStore = create<OptimizerState>((set, get) => ({
     momentum: get().momentum,
     adam: get().adam,
     sgd: get().sgd,
+    wheel: get().wheel,
   }),
 }))

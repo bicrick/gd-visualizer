@@ -52,6 +52,7 @@ export interface OptimizationResponse {
   momentum?: TrajectoryTuple[]
   adam?: TrajectoryTuple[]
   sgd?: TrajectoryTuple[]
+  wheel?: TrajectoryTuple[]
   manifold_id?: string
 }
 

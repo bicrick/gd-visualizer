@@ -22,6 +22,7 @@ export interface AdamParams extends OptimizerParams {
 export interface SgdParams extends OptimizerParams {
   stepMultiplier: number  // Multiplier for effective step size (faster convergence)
   noiseScale: number      // Magnitude of gradient noise (bouncing behavior)
+  noiseDecay: number      // Decay factor per iteration (allows settling over time)
 }
 
 interface OptimizerState {
@@ -110,6 +111,7 @@ export const useOptimizerStore = create<OptimizerState>((set, get) => ({
     convergenceThreshold: 1e-4,
     stepMultiplier: 3.0,  // SGD takes 3x larger steps (faster convergence)
     noiseScale: 0.8,      // High noise for visible "bouncing"
+    noiseDecay: 0.995,    // Noise reduces to ~60% at 100 steps, ~8% at 500 steps
   },
   
   // Initial panel state

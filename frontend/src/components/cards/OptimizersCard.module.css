@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  max-height: 400px;
+  max-height: calc(100vh - 120px);
   overflow-y: auto;
   margin: -16px;
   padding: 16px;
@@ -115,7 +115,7 @@
   padding: 16px;
   border-top: 1px solid var(--border-divider);
   max-height: 500px;
-  overflow: hidden;
+  overflow-y: auto;
   transition: max-height 0.3s ease-out, padding 0.3s ease-out;
   background: var(--bg-primary);
 }

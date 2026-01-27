@@ -265,6 +265,33 @@ export function OptimizersCard() {
             step={0.001}
             onChange={(v) => setOptimizerParam('sgd', 'learningRate', v)}
           />
+          <SliderControl
+            label="Step Multiplier"
+            value={sgd.stepMultiplier}
+            min={1.0}
+            max={6.0}
+            step={0.5}
+            onChange={(v) => setOptimizerParam('sgd', 'stepMultiplier', v)}
+            format={(v) => v.toFixed(1) + 'x'}
+          />
+          <SliderControl
+            label="Noise Scale"
+            value={sgd.noiseScale}
+            min={0.1}
+            max={2.0}
+            step={0.1}
+            onChange={(v) => setOptimizerParam('sgd', 'noiseScale', v)}
+            format={(v) => v.toFixed(1)}
+          />
+          <SliderControl
+            label="Noise Decay"
+            value={sgd.noiseDecay}
+            min={0.95}
+            max={1.0}
+            step={0.005}
+            onChange={(v) => setOptimizerParam('sgd', 'noiseDecay', v)}
+            format={(v) => v.toFixed(3)}
+          />
           <div className={styles.checkboxControl}>
             <label>
               <input

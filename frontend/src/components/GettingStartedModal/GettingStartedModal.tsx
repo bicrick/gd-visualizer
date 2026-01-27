@@ -64,23 +64,23 @@ export const GettingStartedModal = () => {
             
             <div className={styles.controlGroup}>
               <div className={styles.controlItem}>
-                <div className={styles.actionButton}>
+                <div className={`${styles.actionButton} ${styles.playButton}`}>
                   <svg className={styles.buttonIcon} viewBox="0 0 24 24">
-                    <path d="M8 5v14l11-7z" fill="currentColor"/>
+                    <path d="M8 5v14l11-7z"/>
                   </svg>
                 </div>
                 <span className={styles.description}>Start optimization animation</span>
               </div>
               
               <div className={styles.controlItem}>
-                <div className={styles.actionButton}>
+                <div className={`${styles.actionButton} ${styles.pickButton}`}>
                   <svg className={styles.buttonIcon} viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="2" fill="currentColor"/>
-                    <circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" strokeWidth="2"/>
-                    <line x1="12" y1="2" x2="12" y2="7" stroke="currentColor" strokeWidth="2"/>
-                    <line x1="12" y1="17" x2="12" y2="22" stroke="currentColor" strokeWidth="2"/>
-                    <line x1="2" y1="12" x2="7" y2="12" stroke="currentColor" strokeWidth="2"/>
-                    <line x1="17" y1="12" x2="22" y2="12" stroke="currentColor" strokeWidth="2"/>
+                    <circle cx="12" cy="12" r="2"/>
+                    <circle cx="12" cy="12" r="7" fill="none" stroke="white" strokeWidth="2"/>
+                    <line x1="12" y1="2" x2="12" y2="7" stroke="white" strokeWidth="2"/>
+                    <line x1="12" y1="17" x2="12" y2="22" stroke="white" strokeWidth="2"/>
+                    <line x1="2" y1="12" x2="7" y2="12" stroke="white" strokeWidth="2"/>
+                    <line x1="17" y1="12" x2="22" y2="12" stroke="white" strokeWidth="2"/>
                   </svg>
                 </div>
                 <span className={styles.description}>Select starting position on landscape</span>

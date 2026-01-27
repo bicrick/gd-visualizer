@@ -246,7 +246,19 @@ export function OptimizerPanel() {
         format={(v) => v.toFixed(1)}
       />
       <div className={styles.paramHint}>
-        Gradient noise magnitude (higher = more radical bouncing)
+        Initial gradient noise magnitude (higher = more radical bouncing)
+      </div>
+      <SliderControl
+        label="Noise Decay"
+        value={sgd.noiseDecay}
+        min={0.95}
+        max={1.0}
+        step={0.005}
+        onChange={(v) => setOptimizerParam('sgd', 'noiseDecay', v)}
+        format={(v) => v.toFixed(3)}
+      />
+      <div className={styles.paramHint}>
+        Noise reduction per step (lower = faster settling, 1.0 = no decay)
       </div>
       <div className={styles.checkboxControl}>
         <label>

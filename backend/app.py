@@ -188,7 +188,8 @@ def optimize():
                 'convergence_threshold': convergence_threshold,
                 'max_iterations': max_iterations,
                 'step_multiplier': float(params.get('stepMultiplier', 3.0)),
-                'noise_scale': float(params.get('noiseScale', 0.8))
+                'noise_scale': float(params.get('noiseScale', 0.8)),
+                'noise_decay': float(params.get('noiseDecay', 0.995))
             }
         
         if is_ballistic:
@@ -295,7 +296,8 @@ def optimize():
             max_iterations=params['max_iterations'],
             bounds=bounds,
             step_multiplier=params['step_multiplier'],
-            noise_scale=params['noise_scale']
+            noise_scale=params['noise_scale'],
+            noise_decay=params['noise_decay']
         )
         optimizer_timings['sgd'] = time.time() - start_time
     

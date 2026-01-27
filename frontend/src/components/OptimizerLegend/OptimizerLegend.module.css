@@ -30,6 +30,7 @@
   font-weight: 600;
   color: var(--text-primary);
   white-space: nowrap;
+  font-family: 'Courier New', Courier, monospace;
 }
 
 /* Mobile responsive */

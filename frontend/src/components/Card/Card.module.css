@@ -38,6 +38,7 @@
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  font-family: 'Courier New', Courier, monospace;
 }
 
 .summary {
@@ -47,6 +48,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-family: 'Courier New', Courier, monospace;
 }
 
 .collapsedControls {

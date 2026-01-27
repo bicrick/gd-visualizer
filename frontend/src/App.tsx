@@ -8,6 +8,7 @@ import { SettingsButton } from './components/SettingsButton'
 import { ThemeToggle } from './components/ThemeToggle'
 import { SettingsModal } from './components/SettingsModal'
 import { MobileDisclaimer } from './components/MobileDisclaimer'
+import { GettingStartedModal } from './components/GettingStartedModal'
 import styles from './App.module.css'
 
 function App() {
@@ -15,6 +16,9 @@ function App() {
     <div className={styles.container}>
       {/* Mobile disclaimer overlay */}
       <MobileDisclaimer />
+      
+      {/* Getting started modal */}
+      <GettingStartedModal />
       
       {/* Full-screen 3D canvas */}
       <Canvas3D />

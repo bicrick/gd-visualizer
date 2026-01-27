@@ -8,6 +8,7 @@ interface UIState {
   
   // Modal state
   settingsModalOpen: boolean
+  gettingStartedModalOpen: boolean
   
   // Picking mode for start position
   pickingMode: boolean
@@ -17,6 +18,7 @@ interface UIState {
   toggleTheme: () => void
   openSettingsModal: () => void
   closeSettingsModal: () => void
+  closeGettingStartedModal: () => void
   setPickingMode: (enabled: boolean) => void
 }
 
@@ -24,6 +26,7 @@ export const useUIStore = create<UIState>((set, get) => ({
   // Initial state - read from localStorage
   theme: (localStorage.getItem('theme') as Theme) || 'dark',
   settingsModalOpen: false,
+  gettingStartedModalOpen: true,
   pickingMode: false,
   
   // Actions
@@ -42,5 +45,6 @@ export const useUIStore = create<UIState>((set, get) => ({
   
   openSettingsModal: () => set({ settingsModalOpen: true }),
   closeSettingsModal: () => set({ settingsModalOpen: false }),
+  closeGettingStartedModal: () => set({ gettingStartedModalOpen: false }),
   setPickingMode: (enabled) => set({ pickingMode: enabled }),
 }))

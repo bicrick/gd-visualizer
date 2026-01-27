@@ -2,23 +2,25 @@
 
 ## Intuition
 
-Imagine a wheel rolling down a hill instead of a ball sliding.
+Imagine a wheel rolling down a hill instead of a ball sliding, or a spinning coin in one of those coin funnel machines at museums.
 
-When a ball slides, a sideways push immediately changes its direction. But a rolling wheel has **gyroscopic stability** — the faster it spins, the more it resists turning.
+When a ball slides, a sideways push immediately changes its direction. But a rolling wheel has **gyroscopic stability** — it resists turning when spinning fast, like a bicycle that's easy to balance at high speed but wobbly when slow.
 
 This is because a rolling wheel has two kinds of momentum:
 - **Translational momentum** — resistance to speeding up or slowing down
-- **Angular momentum** — resistance to changing direction
+- **Angular momentum** — creates resistance to turning (gyroscopic stability)
 
 Standard optimizers with momentum only have the first kind. The Wheel optimizer has both.
 
-The key insight: **the gradient doesn't directly change velocity**. Instead:
+The key insight: **perpendicular forces are resisted by angular momentum**. Instead of turning sharply:
 
 ```
-gradient → torque → angular momentum → velocity
+perpendicular gradient → tries to turn wheel
+angular momentum L → resists the turn
+result → smooth curves when spinning fast, tighter turns when slow
 ```
 
-The gradient must "go through" the spin first. This creates natural resistance to sudden direction changes, especially when the wheel is spinning fast.
+When the wheel is spinning fast (high L), it maintains its direction despite sideways gradients. As it loses spin (L decreases through momentum decay), it can turn more sharply, creating a spiraling trajectory that tightens as it settles, just like a coin spinning down a funnel.
 
 ## High Level Algorithm
 
@@ -32,13 +34,15 @@ The gradient must "go through" the spin first. This creates natural resistance t
 1. Receive gradient g
 2. Decompose g into parallel (along v) and perpendicular (across v) components
 3. Parallel component adds to angular momentum L (speeds up or slows the spin)
-4. Perpendicular component tries to turn the wheel, but is **resisted by L/I**
-5. New speed is determined by L through the rolling constraint: `speed = L / I`
-6. Update parameters
+4. Perpendicular component tries to turn the wheel **toward** the gradient direction
+5. Turning is **resisted** by gyroscopic stability proportional to L × I
+6. Higher L or I means stronger resistance, smoother curves
+7. New speed is determined by L through the rolling constraint: `speed = L / I`
+8. Update parameters
 
 **The moment of inertia I controls:**
 - How hard it is to get the wheel rolling (high I = slow to accelerate)
-- How hard it is to turn the wheel (high I = more gyroscopic stability)
+- How much the wheel resists turning (high I = more gyroscopic resistance = smoother curves)
 
 Both effects come from the same mechanism — this is physically correct.
 
@@ -111,10 +115,11 @@ class WheelOptimizer:
             self.L = self.beta * self.L + g_parallel_mag
             self.L = max(self.L, 0.0)  # L is non-negative; if it hits 0, we've stopped
             
-            # Update velocity direction
-            # Perpendicular gradient turns us, but resisted by L/I
-            turn_resistance = (self.L / self.I) + self.eps
-            direction_change = g_perp / turn_resistance
+            # Update velocity direction with gyroscopic turn resistance
+            # Perpendicular gradient tries to turn the wheel toward it
+            # Gyroscopic stability resists proportional to L * I
+            gyro_resistance = self.L * self.I + self.eps
+            direction_change = g_perp / gyro_resistance
             v_hat_new = v_hat + direction_change
             v_hat_new = v_hat_new / (np.linalg.norm(v_hat_new) + self.eps)
             
@@ -230,9 +235,11 @@ class WheelOptimizer(Optimizer):
                 L = beta * L + g_parallel_mag
                 L = torch.clamp(L, min=0.0)
                 
-                # Update direction (with gyroscopic resistance)
-                turn_resistance = (L / I) + eps
-                direction_change = g_perp / turn_resistance
+                # Update direction with gyroscopic turn resistance
+                # Perpendicular gradient tries to turn the wheel toward it
+                # Gyroscopic stability resists proportional to L * I
+                gyro_resistance = L * I + eps
+                direction_change = g_perp / gyro_resistance
                 v_hat_new = v_hat + direction_change
                 v_hat_new = v_hat_new / (torch.linalg.norm(v_hat_new) + eps)
                 
@@ -285,8 +292,9 @@ for data, target in dataloader:
 | Property | Standard Momentum | Wheel Optimizer |
 |----------|-------------------|-----------------|
 | Resists speeding up/slowing down | ✓ | ✓ |
-| Resists turning | ✗ | ✓ |
-| Gradient effect | Direct | Through angular momentum |
+| Turning behavior | Direct steering | Gyroscopic turn resistance |
+| Trajectory shape | Smooth curves | Spirals (tighter as L decreases) |
+| Gradient effect | Direct | Resisted by L × I |
 | State tracked | v | v, L |
 | Hyperparameters | lr, β | lr, β, I |
 
@@ -295,12 +303,15 @@ for data, target in dataloader:
 **Try higher I when:**
 - Gradients are noisy
 - Loss landscape has many small local features
-- You want to maintain consistent direction through noise
+- You want smoother, more stable trajectories
+- You want stronger resistance to direction changes
+- Training is overshooting or oscillating
 
 **Try lower I when:**
-- Loss landscape requires sharp turns
-- You need to quickly adapt to changing gradient directions
+- You want tighter spirals and more responsive turning
+- Loss landscape has well-defined valleys
 - Training is too slow to start
+- You need to quickly adapt to changing gradient directions
 
 ## Mathematical Summary
 
@@ -312,11 +323,17 @@ v̂ = v / |v|
 g_∥ = (g · v̂) v̂
 g_⊥ = g - g_∥
 
-# Update angular momentum
-L_t = β L_{t-1} + |g_∥|
+# Update angular momentum (from parallel component)
+L_t = β L_{t-1} + (g · v̂)
 
-# Update velocity direction (gyroscopic resistance)
-v̂_new = normalize(v̂ + g_⊥ / (L_t / I))
+# Gyroscopic turn resistance
+# Perpendicular gradient tries to turn wheel toward it
+# Resistance proportional to L × I
+gyro_resistance = L_t × I
+direction_change = g_⊥ / gyro_resistance
+
+# Update velocity direction
+v̂_new = normalize(v̂ + direction_change)
 
 # Update speed (rolling constraint)  
 |v_new| = L_t / I
@@ -324,3 +341,5 @@ v̂_new = normalize(v̂ + g_⊥ / (L_t / I))
 # Update parameters
 θ_t = θ_{t-1} - lr · v_new
 ```
+
+Key insight: As L decreases (momentum decay), gyroscopic resistance decreases, allowing sharper turns. This creates the characteristic spiral trajectory that tightens as the wheel settles, like a coin spinning down a funnel.

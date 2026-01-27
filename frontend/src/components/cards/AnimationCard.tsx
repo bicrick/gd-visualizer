@@ -198,7 +198,7 @@ export function AnimationCard() {
     <Card 
       title="Animation" 
       summary={summaryText}
-      defaultCollapsed={false}
+      defaultCollapsed={true}
       collapsedControls={collapsedControls}
     >
       <div className={styles.content}>

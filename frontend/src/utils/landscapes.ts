@@ -67,13 +67,13 @@ function customMultimodal(
   x: number, 
   y: number, 
   globalScale = 0.1, 
-  wellWidth = 2.0, 
-  wellDepthScale = 1.0, 
-  numWells = 6
+  wellWidth = 3.5, 
+  wellDepthScale = -1.5, 
+  numWells = 3
 ): number {
   let loss = (x * x + y * y) * globalScale
   
-  const wells = generateWellPositions(numWells, 4.0, 2.5)
+  const wells = generateWellPositions(numWells, 2.5, 2.5)
   
   for (const [wx, wy, depth] of wells) {
     const distSq = (x - wx) * (x - wx) + (y - wy) * (y - wy)
@@ -149,9 +149,9 @@ export function generateManifoldLandscape(
           xVals[j], 
           yVals[i],
           params.global_scale ?? 0.1,
-          params.well_width ?? 2.0,
-          params.well_depth_scale ?? 1.0,
-          params.num_wells ?? 6
+          params.well_width ?? 3.5,
+          params.well_depth_scale ?? -1.5,
+          params.num_wells ?? 3
         )
       } else {
         zVal = func(xVals[j], yVals[i])
@@ -179,9 +179,9 @@ export function getManifoldZValue(
     return customMultimodal(
       x, y,
       params.global_scale ?? 0.1,
-      params.well_width ?? 2.0,
-      params.well_depth_scale ?? 1.0,
-      params.num_wells ?? 6
+      params.well_width ?? 3.5,
+      params.well_depth_scale ?? -1.5,
+      params.num_wells ?? 3
     )
   }
   

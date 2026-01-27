@@ -59,7 +59,9 @@ export interface OptimizationResponse {
  * Fetch available manifolds from the backend
  */
 export async function fetchManifolds(): Promise<ManifoldResponse> {
-  const response = await fetch(`${API_BASE_URL}/manifolds`)
+  const response = await fetch(`${API_BASE_URL}/manifolds`, {
+    cache: 'no-store'
+  })
   if (!response.ok) {
     throw new Error(`Failed to fetch manifolds: ${response.status}`)
   }

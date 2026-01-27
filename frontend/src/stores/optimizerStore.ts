@@ -34,6 +34,9 @@ interface OptimizerState {
   adam: AdamParams
   sgd: OptimizerParams
   
+  // Panel state
+  activePanelOptimizer: string | null
+  
   // Actions
   toggleOptimizer: (name: keyof OptimizerState['enabled'], enabled: boolean) => void
   setOptimizerParam: <T extends keyof OptimizerState['enabled']>(
@@ -41,6 +44,8 @@ interface OptimizerState {
     param: string, 
     value: number | boolean
   ) => void
+  openOptimizerPanel: (name: string) => void
+  closeOptimizerPanel: () => void
   getEnabledOptimizers: () => Record<string, boolean>
   getOptimizerParams: () => Record<string, unknown>
 }
@@ -100,6 +105,9 @@ export const useOptimizerStore = create<OptimizerState>((set, get) => ({
     convergenceThreshold: 1e-4,
   },
   
+  // Initial panel state
+  activePanelOptimizer: null,
+  
   // Actions
   toggleOptimizer: (name, enabled) => set((state) => ({
     enabled: { ...state.enabled, [name]: enabled }
@@ -108,6 +116,10 @@ export const useOptimizerStore = create<OptimizerState>((set, get) => ({
   setOptimizerParam: (optimizer, param, value) => set((state) => ({
     [optimizer]: { ...state[optimizer], [param]: value }
   })),
+  
+  openOptimizerPanel: (name) => set({ activePanelOptimizer: name }),
+  
+  closeOptimizerPanel: () => set({ activePanelOptimizer: null }),
   
   getEnabledOptimizers: () => get().enabled,
   

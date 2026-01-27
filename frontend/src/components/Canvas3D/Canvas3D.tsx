@@ -1,5 +1,5 @@
 import { useMemo, useCallback, useRef } from 'react'
-import { Canvas, useFrame, useThree, ThreeEvent } from '@react-three/fiber'
+import { Canvas, useFrame, ThreeEvent } from '@react-three/fiber'
 import { OrbitControls, Line } from '@react-three/drei'
 import * as THREE from 'three'
 import { useSceneStore, useAnimationStore, useUIStore, useOptimizerStore, OPTIMIZER_COLORS } from '../../stores'
@@ -33,11 +33,12 @@ function LandscapeMesh({ data, meshRef }: LandscapeMeshProps & { meshRef?: React
     
     // Convert world coordinates back to parameter space
     // Inverse of: worldX = ((paramX - rangeMin) / rangeSize - 0.5) * 10
+    //             worldZ = -((paramY - rangeMin) / rangeSize - 0.5) * 10
     const [rangeMin, rangeMax] = manifoldRange
     const rangeSize = rangeMax - rangeMin
     
     const paramX = ((worldX / 10) + 0.5) * rangeSize + rangeMin
-    const paramY = ((worldZ / 10) + 0.5) * rangeSize + rangeMin
+    const paramY = ((-worldZ / 10) + 0.5) * rangeSize + rangeMin
     
     // Clamp to manifold range
     const clampedX = Math.max(rangeMin, Math.min(rangeMax, paramX))
@@ -140,7 +141,7 @@ function StartPointMarker({ x, y, landscapeData }: StartPointMarkerProps) {
   
   // Map parameter space to world space
   const worldX = ((x - rangeMin) / rangeSize - 0.5) * 10
-  const worldZ = ((y - rangeMin) / rangeSize - 0.5) * 10
+  const worldZ = -((y - rangeMin) / rangeSize - 0.5) * 10
   
   // Calculate height at this position
   const normalizedX = (x - rangeMin) / rangeSize
@@ -213,7 +214,7 @@ function TrajectoryLines({ trajectories, landscapeData, currentStep, showTrails 
         
         const linePoints: [number, number, number][] = visiblePoints.map(p => {
           const worldX = ((p.x - rangeMin) / rangeSize - 0.5) * 10
-          const worldZ = ((p.y - rangeMin) / rangeSize - 0.5) * 10
+          const worldZ = -((p.y - rangeMin) / rangeSize - 0.5) * 10
           const worldY = ((p.z - zMin) / zRange) * HEIGHT_SCALE + 0.05
           return [worldX, worldY, worldZ]
         })
@@ -255,7 +256,7 @@ function OptimizerBalls({ trajectories, landscapeData, currentStep }: Omit<Traje
         const p = points[pointIndex]
         
         const worldX = ((p.x - rangeMin) / rangeSize - 0.5) * 10
-        const worldZ = ((p.y - rangeMin) / rangeSize - 0.5) * 10
+        const worldZ = -((p.y - rangeMin) / rangeSize - 0.5) * 10
         const worldY = ((p.z - zMin) / zRange) * HEIGHT_SCALE + 0.1
         
         const color = OPTIMIZER_COLORS[optimizer] || '#ffffff'
@@ -305,46 +306,6 @@ function AnimationController() {
       }
     }
   })
-  
-  return null
-}
-
-// Click handler for picking points on the landscape
-function ClickHandler({ landscapeData, landscapeRef }: { landscapeData: LandscapeData, landscapeRef: React.RefObject<THREE.Mesh> }) {
-  const pickingMode = useUIStore(state => state.pickingMode)
-  const setPickingMode = useUIStore(state => state.setPickingMode)
-  const setStartPosition = useSceneStore(state => state.setStartPosition)
-  const manifoldRange = useSceneStore(state => state.manifoldRange)
-  const animationState = useAnimationStore(state => state.state)
-  
-  const handleMeshClick = useCallback((event: ThreeEvent<MouseEvent>) => {
-    if (!pickingMode || animationState === 'playing') return
-    
-    event.stopPropagation()
-    
-    // Get the intersection point in world coordinates
-    const point = event.point
-    const worldX = point.x
-    const worldZ = point.z
-    
-    // Convert world coordinates back to parameter space
-    // Inverse of: worldX = ((paramX - rangeMin) / rangeSize - 0.5) * 10
-    const [rangeMin, rangeMax] = manifoldRange
-    const rangeSize = rangeMax - rangeMin
-    
-    const paramX = ((worldX / 10) + 0.5) * rangeSize + rangeMin
-    const paramY = ((worldZ / 10) + 0.5) * rangeSize + rangeMin
-    
-    // Clamp to manifold range
-    const clampedX = Math.max(rangeMin, Math.min(rangeMax, paramX))
-    const clampedY = Math.max(rangeMin, Math.min(rangeMax, paramY))
-    
-    // Update start position
-    setStartPosition(clampedX, clampedY)
-    
-    // Exit picking mode
-    setPickingMode(false)
-  }, [pickingMode, animationState, manifoldRange, setStartPosition, setPickingMode])
   
   return null
 }

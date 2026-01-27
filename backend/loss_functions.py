@@ -57,7 +57,7 @@ def generate_well_positions(num_wells, radius=4.0, base_depth=2.5):
     return wells
 
 
-def custom_multimodal(x, y, global_scale=0.1, well_width=2.0, well_depth_scale=1.0, num_wells=6):
+def custom_multimodal(x, y, global_scale=0.1, well_width=3.5, well_depth_scale=-1.5, num_wells=3):
     """
     Custom function with multiple local minima (wells/valleys) for demonstration.
     Combines Gaussian wells with adjustable parameters.
@@ -65,15 +65,15 @@ def custom_multimodal(x, y, global_scale=0.1, well_width=2.0, well_depth_scale=1
     Args:
         x, y: coordinates in parameter space
         global_scale: multiplier for the quadratic term (default 0.1)
-        well_width: controls the Gaussian width (default 2.0)
-        well_depth_scale: multiplier for all well depths (default 1.0)
-        num_wells: number of wells (valleys) to include (default 6)
+        well_width: controls the Gaussian width (default 3.5)
+        well_depth_scale: multiplier for all well depths (default -1.5)
+        num_wells: number of wells (valleys) to include (default 3)
     """
     # Global minimum at (0, 0)
     loss = (x**2 + y**2) * global_scale
     
     # Generate well positions dynamically in regular polygon pattern
-    wells = generate_well_positions(num_wells, radius=4.0, base_depth=2.5)
+    wells = generate_well_positions(num_wells, radius=2.5, base_depth=2.5)
     
     # Add wells (subtract to create valleys/local minima)
     for wx, wy, depth in wells:
@@ -167,9 +167,9 @@ MANIFOLD_REGISTRY = {
         'default_range': (-5, 5),
         'parameters': [
             {'name': 'global_scale', 'label': 'Global Scale', 'min': 0.0, 'max': 0.5, 'step': 0.01, 'default': 0.1},
-            {'name': 'well_width', 'label': 'Well Width', 'min': 0.5, 'max': 5.0, 'step': 0.1, 'default': 2.0},
-            {'name': 'well_depth_scale', 'label': 'Well Depth', 'min': 0.1, 'max': 3.0, 'step': 0.1, 'default': 1.0},
-            {'name': 'num_wells', 'label': 'Number of Wells', 'min': 1, 'max': 6, 'step': 1, 'default': 6}
+            {'name': 'well_width', 'label': 'Well Width', 'min': 0.5, 'max': 5.0, 'step': 0.1, 'default': 3.5},
+            {'name': 'well_depth_scale', 'label': 'Well Depth', 'min': -3.0, 'max': 3.0, 'step': 0.1, 'default': -1.5},
+            {'name': 'num_wells', 'label': 'Number of Wells', 'min': 1, 'max': 6, 'step': 1, 'default': 3}
         ]
     },
     'himmelblau': {

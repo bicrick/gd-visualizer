@@ -61,8 +61,8 @@ export const useSceneStore = create<SceneState>((set, get) => ({
   currentManifoldId: 'custom_multimodal',
   manifoldParams: {},
   manifoldRange: [-5, 5],
-  startX: 3,
-  startY: 3,
+  startX: 0.15,
+  startY: -2.22,
   lastOptimizationStartPos: null,
   trajectories: {},
   isLoading: false,
@@ -86,8 +86,8 @@ export const useSceneStore = create<SceneState>((set, get) => ({
         manifoldRange: manifold.default_range,
         trajectories: {}, // Clear trajectories on manifold change
         lastOptimizationStartPos: null,
-        startX: 0, // Reset to center
-        startY: 0,
+        startX: 0.15,
+        startY: -2.22,
       })
     }
   },

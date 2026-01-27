@@ -243,13 +243,10 @@ def optimize():
     # Get manifold parameters if provided
     manifold_params = data.get('manifold_params', {})
     
-    # Create wrapper function if manifold has parameters
-    if manifold_params and len(manifold_params) > 0:
-        def loss_wrapper(x, y):
-            return loss_function(x, y, **manifold_params)
-        actual_loss_function = loss_wrapper
-    else:
-        actual_loss_function = loss_function
+    # Always wrap for custom_multimodal to ensure parameters are explicitly passed
+    def loss_wrapper(x, y):
+        return loss_function(x, y, **manifold_params)
+    actual_loss_function = loss_wrapper
     
     # Get manifold metadata to get bounds
     manifold_meta = get_manifold_metadata(manifold_id)

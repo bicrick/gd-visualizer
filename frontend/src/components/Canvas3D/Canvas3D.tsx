@@ -299,7 +299,7 @@ function AnimationController() {
       
       const newStep = currentStep + stepsToAdvance
       if (newStep >= totalSteps) {
-        setCurrentStep(totalSteps - 1)
+        setCurrentStep(totalSteps)
         pause()
       } else {
         setCurrentStep(newStep)

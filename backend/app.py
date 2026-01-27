@@ -168,8 +168,28 @@ def optimize():
     default_max_iterations = int(data.get('max_iterations', 10000))
     
     # Helper function to get optimizer-specific params
-    def get_optimizer_params(optimizer_name, has_momentum=False, is_adam=False, is_ballistic=False, is_ballistic_adam=False):
+    def get_optimizer_params(optimizer_name, has_momentum=False, is_adam=False, is_ballistic=False, is_ballistic_adam=False, is_sgd=False):
         params = optimizer_params.get(optimizer_name, {})
+        
+        if is_sgd:
+            # SGD has additional parameters for stochastic behavior
+            learning_rate = float(params.get('learningRate', default_learning_rate))
+            n_iterations = int(params.get('iterations', default_n_iterations))
+            use_convergence = params.get('useConvergence', default_use_convergence)
+            convergence_threshold = float(params.get('convergenceThreshold', default_convergence_threshold))
+            max_iterations = int(params.get('maxIterations', default_max_iterations))
+            
+            if use_convergence:
+                n_iterations = -1
+            
+            return {
+                'learning_rate': learning_rate,
+                'n_iterations': n_iterations,
+                'convergence_threshold': convergence_threshold,
+                'max_iterations': max_iterations,
+                'step_multiplier': float(params.get('stepMultiplier', 3.0)),
+                'noise_scale': float(params.get('noiseScale', 0.8))
+            }
         
         if is_ballistic:
             # Ballistic uses physics parameters instead of learning rate
@@ -262,7 +282,7 @@ def optimize():
     
     # Only run enabled optimizers with their specific parameters
     if enabled_optimizers.get('sgd', False):
-        params = get_optimizer_params('sgd')
+        params = get_optimizer_params('sgd', is_sgd=True)
         start_time = time.time()
         result['sgd'] = stochastic_gradient_descent(
             actual_loss_function,
@@ -273,7 +293,9 @@ def optimize():
             seed=seed,
             convergence_threshold=params['convergence_threshold'],
             max_iterations=params['max_iterations'],
-            bounds=bounds
+            bounds=bounds,
+            step_multiplier=params['step_multiplier'],
+            noise_scale=params['noise_scale']
         )
         optimizer_timings['sgd'] = time.time() - start_time
     

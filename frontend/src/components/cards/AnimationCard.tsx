@@ -147,7 +147,9 @@ export function AnimationCard() {
     : animationState === 'playing' 
     ? `Playing ${currentStep}/${totalSteps}`
     : animationState === 'paused'
-    ? `Paused ${currentStep}/${totalSteps}`
+    ? currentStep === totalSteps
+      ? `Finished ${totalSteps}/${totalSteps}`
+      : `Paused ${currentStep}/${totalSteps}`
     : totalSteps > 0 
     ? `Ready ${totalSteps} steps`
     : 'Stopped'

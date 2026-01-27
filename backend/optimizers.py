@@ -8,9 +8,19 @@ from loss_functions import DEFAULT_LOSS_FUNCTION, compute_gradient
 
 def stochastic_gradient_descent(loss_func, initial_params, learning_rate, n_iterations, 
                                 dataset=None, seed=42, convergence_threshold=1e-6, 
-                                max_iterations=10000, bounds=None):
+                                max_iterations=10000, bounds=None,
+                                step_multiplier=3.0, noise_scale=0.8):
     """
-    Stochastic Gradient Descent - adds noise to simulate stochastic behavior.
+    Stochastic Gradient Descent - simulates mini-batch behavior with larger,
+    noisier steps compared to batch gradient descent.
+    
+    Unlike batch gradient descent which computes the exact gradient over the full
+    dataset, SGD approximates the gradient using mini-batches. This results in:
+    1. Faster convergence (larger effective step size via step_multiplier)
+    2. Noisier gradients that don't always point directly downhill (noise_scale)
+    
+    The visualization shows SGD "racing ahead" while bouncing around, which
+    represents the real-world trade-off: faster convergence but less stable path.
     
     Args:
         loss_func: Loss function
@@ -22,6 +32,10 @@ def stochastic_gradient_descent(loss_func, initial_params, learning_rate, n_iter
         convergence_threshold: Stop if gradient magnitude is below this
         max_iterations: Maximum iterations for convergence mode
         bounds: Tuple of (min, max) for parameter bounds, or None for no bounds
+        step_multiplier: Multiplier for effective step size (default 3.0)
+                        Higher values = SGD moves faster, converges quicker
+        noise_scale: Standard deviation of gradient noise (default 0.8)
+                    Higher values = more radical "bouncing" behavior
     
     Returns:
         List of (x, y, loss) tuples representing the trajectory
@@ -43,16 +57,37 @@ def stochastic_gradient_descent(loss_func, initial_params, learning_rate, n_iter
         # Compute gradient at current position
         grad = compute_gradient(loss_func, params[0], params[1])
         
-        # Add noise to simulate stochastic behavior
-        noise = np.random.normal(0, 0.1, size=grad.shape)
-        noisy_grad = grad + noise
-        
-        # Check convergence
-        if use_convergence and np.linalg.norm(grad) < convergence_threshold:
+        # Check convergence (use true gradient magnitude)
+        grad_magnitude = np.linalg.norm(grad)
+        if use_convergence and grad_magnitude < convergence_threshold:
             break
         
-        # Update parameters with noisy gradient
-        params = params - learning_rate * noisy_grad
+        # Add noise to simulate mini-batch gradient variance
+        # Noise has two components:
+        # 1. Directional noise: perpendicular to gradient (causes sideways bouncing)
+        # 2. Magnitude noise: along gradient direction (causes speed variation)
+        
+        # Create perpendicular direction for sideways bouncing
+        if grad_magnitude > 1e-8:
+            grad_normalized = grad / grad_magnitude
+            perpendicular = np.array([-grad_normalized[1], grad_normalized[0]])
+        else:
+            perpendicular = np.array([1.0, 0.0])
+        
+        # Perpendicular noise (sideways bouncing) - more dramatic
+        sideways_noise = np.random.normal(0, noise_scale * 0.7) * perpendicular
+        
+        # Magnitude noise (speed variation along gradient)
+        magnitude_noise = np.random.normal(0, noise_scale * 0.3) * grad_normalized if grad_magnitude > 1e-8 else np.zeros(2)
+        
+        # Combined noisy gradient
+        noisy_grad = grad + sideways_noise + magnitude_noise
+        
+        # Effective learning rate is multiplied for faster convergence
+        effective_lr = learning_rate * step_multiplier
+        
+        # Update parameters with noisy gradient and larger step
+        params = params - effective_lr * noisy_grad
         
         # Check if parameters are within bounds
         if bounds is not None:

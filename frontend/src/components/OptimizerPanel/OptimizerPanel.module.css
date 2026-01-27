@@ -200,6 +200,16 @@
   cursor: pointer;
 }
 
+/* Parameter hint text */
+.paramHint {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-top: -16px;
+  margin-bottom: 20px;
+  padding-left: 2px;
+  opacity: 0.8;
+}
+
 /* Mobile responsive */
 @media (max-width: 768px) {
   .panel {

@@ -4,4 +4,4 @@ export { useAnimationStore } from './animationStore'
 export { useUIStore } from './uiStore'
 
 export type { Manifold, ManifoldParameter } from './sceneStore'
-export type { OptimizerParams, MomentumParams, AdamParams } from './optimizerStore'
+export type { OptimizerParams, MomentumParams, AdamParams, SgdParams } from './optimizerStore'

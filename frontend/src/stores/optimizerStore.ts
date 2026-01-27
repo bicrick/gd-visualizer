@@ -19,6 +19,11 @@ export interface AdamParams extends OptimizerParams {
   epsilon: number
 }
 
+export interface SgdParams extends OptimizerParams {
+  stepMultiplier: number  // Multiplier for effective step size (faster convergence)
+  noiseScale: number      // Magnitude of gradient noise (bouncing behavior)
+}
+
 interface OptimizerState {
   // Enabled state for each optimizer
   enabled: {
@@ -32,7 +37,7 @@ interface OptimizerState {
   batch: OptimizerParams
   momentum: MomentumParams
   adam: AdamParams
-  sgd: OptimizerParams
+  sgd: SgdParams
   
   // Panel state
   activePanelOptimizer: string | null
@@ -103,6 +108,8 @@ export const useOptimizerStore = create<OptimizerState>((set, get) => ({
     useConvergence: true,
     maxIterations: 10000,
     convergenceThreshold: 1e-4,
+    stepMultiplier: 3.0,  // SGD takes 3x larger steps (faster convergence)
+    noiseScale: 0.8,      // High noise for visible "bouncing"
   },
   
   // Initial panel state

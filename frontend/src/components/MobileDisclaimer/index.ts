@@ -1,0 +1,1 @@
+export { MobileDisclaimer } from './MobileDisclaimer'

@@ -278,7 +278,7 @@ function AnimationController() {
   const totalSteps = useAnimationStore(state => state.totalSteps)
   const speed = useAnimationStore(state => state.speed)
   const setCurrentStep = useAnimationStore(state => state.setCurrentStep)
-  const stop = useAnimationStore(state => state.stop)
+  const pause = useAnimationStore(state => state.pause)
   
   const accumulatorRef = useRef(0)
   
@@ -299,7 +299,7 @@ function AnimationController() {
       const newStep = currentStep + stepsToAdvance
       if (newStep >= totalSteps) {
         setCurrentStep(totalSteps - 1)
-        stop()
+        pause()
       } else {
         setCurrentStep(newStep)
       }

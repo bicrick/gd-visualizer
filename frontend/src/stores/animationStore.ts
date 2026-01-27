@@ -34,7 +34,7 @@ export const useAnimationStore = create<AnimationStoreState>((set, get) => ({
   // Actions
   play: () => set({ state: 'playing' }),
   pause: () => set({ state: 'paused' }),
-  stop: () => set({ state: 'stopped', currentStep: 0 }),
+  stop: () => set({ state: 'stopped' }),
   
   setCurrentStep: (step) => set({ currentStep: step }),
   setTotalSteps: (steps) => set({ totalSteps: steps }),
@@ -46,7 +46,7 @@ export const useAnimationStore = create<AnimationStoreState>((set, get) => ({
     if (currentStep < totalSteps) {
       set({ currentStep: currentStep + 1 })
     } else {
-      set({ state: 'stopped' })
+      set({ state: 'paused' })
     }
   },
 }))

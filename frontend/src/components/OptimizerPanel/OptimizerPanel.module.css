@@ -1,0 +1,346 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg-modal-overlay);
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 90%;
+  max-width: 420px;
+  background: var(--bg-secondary);
+  border-left: 1px solid var(--border-primary);
+  box-shadow: -4px 0 32px var(--shadow-heavy);
+  display: flex;
+  flex-direction: column;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px;
+  border-bottom: 1px solid var(--border-primary);
+  background: var(--bg-panel-header);
+  flex-shrink: 0;
+}
+
+.titleContainer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.colorIndicator {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+  box-shadow: 0 0 8px var(--shadow-medium);
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-heading);
+  margin: 0;
+}
+
+.closeBtn {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.closeBtn:hover {
+  background: var(--bg-button-hover);
+}
+
+.closeIcon {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: var(--text-secondary);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.content {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Controls */
+.control {
+  margin-bottom: 24px;
+}
+
+.control:last-child {
+  margin-bottom: 0;
+}
+
+.controlLabel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+.controlValue {
+  color: var(--accent-primary);
+  font-weight: 600;
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.slider {
+  width: 100%;
+  height: 6px;
+  background: var(--border-primary);
+  outline: none;
+  border-radius: 3px;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  background: var(--accent-primary);
+  cursor: pointer;
+  border-radius: 50%;
+  border: 3px solid #ffffff;
+  box-shadow: 0 2px 6px var(--shadow-medium);
+  transition: all 0.2s ease;
+}
+
+.slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  background: var(--accent-primary);
+  cursor: pointer;
+  border-radius: 50%;
+  border: 3px solid #ffffff;
+  box-shadow: 0 2px 6px var(--shadow-medium);
+  transition: all 0.2s ease;
+}
+
+.slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 3px 8px var(--shadow-heavy);
+}
+
+.slider::-moz-range-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 3px 8px var(--shadow-heavy);
+}
+
+/* Checkbox control */
+.checkboxControl {
+  margin-bottom: 24px;
+  padding: 14px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+}
+
+.checkboxControl label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.checkboxControl input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent-primary);
+  cursor: pointer;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .panel {
+    width: 100%;
+    max-width: none;
+  }
+  
+  .header {
+    padding: 18px;
+  }
+  
+  .title {
+    font-size: 18px;
+  }
+  
+  .colorIndicator {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .closeBtn {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .closeIcon {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .content {
+    padding: 18px;
+  }
+  
+  .control {
+    margin-bottom: 20px;
+  }
+  
+  .controlLabel {
+    font-size: 13px;
+  }
+  
+  .controlValue {
+    font-size: 12px;
+  }
+  
+  .slider::-webkit-slider-thumb {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .slider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .checkboxControl {
+    margin-bottom: 20px;
+    padding: 12px;
+  }
+  
+  .checkboxControl label {
+    font-size: 13px;
+  }
+  
+  .checkboxControl input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: 16px;
+  }
+  
+  .title {
+    font-size: 16px;
+  }
+  
+  .titleContainer {
+    gap: 10px;
+  }
+  
+  .colorIndicator {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .closeBtn {
+    width: 30px;
+    height: 30px;
+  }
+  
+  .closeIcon {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .content {
+    padding: 16px;
+  }
+  
+  .control {
+    margin-bottom: 18px;
+  }
+  
+  .controlLabel {
+    font-size: 12px;
+  }
+  
+  .controlValue {
+    font-size: 11px;
+  }
+  
+  .slider {
+    height: 5px;
+  }
+  
+  .slider::-webkit-slider-thumb {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .slider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .checkboxControl {
+    margin-bottom: 18px;
+    padding: 10px;
+  }
+  
+  .checkboxControl label {
+    font-size: 12px;
+    gap: 8px;
+  }
+  
+  .checkboxControl input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+  }
+}

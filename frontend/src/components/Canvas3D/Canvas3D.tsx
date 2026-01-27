@@ -322,6 +322,29 @@ function KeyboardControls({ orbitControlsRef }: KeyboardControlsProps) {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const key = event.key.toLowerCase()
+      
+      // Log camera view parameters when 'V' is pressed
+      if (key === 'v' && orbitControlsRef.current) {
+        const position = camera.position
+        const target = orbitControlsRef.current.target
+        
+        console.log('=== CAMERA VIEW PARAMETERS ===')
+        console.log('Camera Position:', {
+          x: position.x.toFixed(2),
+          y: position.y.toFixed(2),
+          z: position.z.toFixed(2)
+        })
+        console.log('Camera Target:', {
+          x: target.x.toFixed(2),
+          y: target.y.toFixed(2),
+          z: target.z.toFixed(2)
+        })
+        console.log('Camera FOV:', camera.fov)
+        console.log('=============================')
+        event.preventDefault()
+        return
+      }
+      
       if (['w', 'a', 's', 'd'].includes(key)) {
         keysPressed.current.add(key)
         event.preventDefault()
@@ -343,7 +366,7 @@ function KeyboardControls({ orbitControlsRef }: KeyboardControlsProps) {
       window.removeEventListener('keydown', handleKeyDown)
       window.removeEventListener('keyup', handleKeyUp)
     }
-  }, [])
+  }, [camera, orbitControlsRef])
   
   useFrame((_, delta) => {
     if (keysPressed.current.size === 0 || !orbitControlsRef.current) return
@@ -476,7 +499,7 @@ export function Canvas3D() {
       className={`${styles.canvasContainer} ${pickingMode ? styles.pickingMode : ''}`}
     >
       <Canvas
-        camera={{ position: [15, 15, 15], fov: 60 }}
+        camera={{ position: [-4.10, 7.54, -8.44], fov: 60 }}
         gl={{ antialias: true }}
       >
         <Scene />

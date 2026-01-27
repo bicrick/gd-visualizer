@@ -18,7 +18,7 @@ export function ManifoldParamsCard() {
   
   return (
     <Card 
-      title="Parameters" 
+      title="Manifold Parameters:" 
       summary={`${parameters.length} params`}
       defaultCollapsed={true}
     >

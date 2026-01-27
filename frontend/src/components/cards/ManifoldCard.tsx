@@ -35,7 +35,7 @@ export function ManifoldCard() {
   
   return (
     <Card 
-      title="Manifold" 
+      title="Manifold:" 
       summary={currentName}
       defaultCollapsed={true}
     >

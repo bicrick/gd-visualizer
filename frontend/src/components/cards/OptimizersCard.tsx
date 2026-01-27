@@ -89,7 +89,7 @@ export function OptimizersCard() {
   
   return (
     <Card 
-      title="Optimizers" 
+      title="Optimizers:" 
       summary={`${enabledCount}/${totalCount} enabled`}
       defaultCollapsed={true}
     >

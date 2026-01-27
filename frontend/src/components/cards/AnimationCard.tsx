@@ -189,6 +189,9 @@ export function AnimationCard() {
         stop()
         clearTrajectories()
         await runOptimizationHandler()
+      } else {
+        // If replaying existing animation, reset to beginning
+        setCurrentStep(0)
       }
       play()
     } else {
@@ -253,7 +256,7 @@ export function AnimationCard() {
   
   return (
     <Card 
-      title="Animation" 
+      title="Animation:" 
       summary={summaryText}
       defaultCollapsed={true}
       collapsedControls={collapsedControls}

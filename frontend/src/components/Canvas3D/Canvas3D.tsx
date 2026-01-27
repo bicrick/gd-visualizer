@@ -1,5 +1,5 @@
-import { useMemo, useCallback, useRef } from 'react'
-import { Canvas, useFrame, ThreeEvent } from '@react-three/fiber'
+import { useMemo, useCallback, useRef, useEffect } from 'react'
+import { Canvas, useFrame, ThreeEvent, useThree } from '@react-three/fiber'
 import { OrbitControls, Line } from '@react-three/drei'
 import * as THREE from 'three'
 import { useSceneStore, useAnimationStore, useUIStore, useOptimizerStore, OPTIMIZER_COLORS } from '../../stores'
@@ -310,6 +310,85 @@ function AnimationController() {
   return null
 }
 
+// Keyboard controls component for WASD camera movement
+interface KeyboardControlsProps {
+  orbitControlsRef: React.RefObject<any>
+}
+
+function KeyboardControls({ orbitControlsRef }: KeyboardControlsProps) {
+  const { camera } = useThree()
+  const keysPressed = useRef(new Set<string>())
+  
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const key = event.key.toLowerCase()
+      if (['w', 'a', 's', 'd'].includes(key)) {
+        keysPressed.current.add(key)
+        event.preventDefault()
+      }
+    }
+    
+    const handleKeyUp = (event: KeyboardEvent) => {
+      const key = event.key.toLowerCase()
+      if (['w', 'a', 's', 'd'].includes(key)) {
+        keysPressed.current.delete(key)
+        event.preventDefault()
+      }
+    }
+    
+    window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('keyup', handleKeyUp)
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('keyup', handleKeyUp)
+    }
+  }, [])
+  
+  useFrame((_, delta) => {
+    if (keysPressed.current.size === 0 || !orbitControlsRef.current) return
+    
+    // Movement speed (units per second)
+    const baseSpeed = 10
+    const speed = baseSpeed * delta
+    
+    // Get camera's forward direction (projected to XZ plane for horizontal movement)
+    const forward = new THREE.Vector3()
+    camera.getWorldDirection(forward)
+    forward.y = 0
+    forward.normalize()
+    
+    // Get right direction (perpendicular to forward)
+    const right = new THREE.Vector3()
+    right.crossVectors(forward, new THREE.Vector3(0, 1, 0))
+    right.normalize()
+    
+    // Calculate movement delta
+    const moveDelta = new THREE.Vector3()
+    
+    if (keysPressed.current.has('w')) {
+      moveDelta.add(forward.clone().multiplyScalar(speed))
+    }
+    if (keysPressed.current.has('s')) {
+      moveDelta.add(forward.clone().multiplyScalar(-speed))
+    }
+    if (keysPressed.current.has('a')) {
+      moveDelta.add(right.clone().multiplyScalar(-speed))
+    }
+    if (keysPressed.current.has('d')) {
+      moveDelta.add(right.clone().multiplyScalar(speed))
+    }
+    
+    // Apply movement to both camera and OrbitControls target
+    if (moveDelta.lengthSq() > 0) {
+      camera.position.add(moveDelta)
+      orbitControlsRef.current.target.add(moveDelta)
+    }
+  })
+  
+  return null
+}
+
 function Scene() {
   const theme = useUIStore(state => state.theme)
   const currentManifoldId = useSceneStore(state => state.currentManifoldId)
@@ -322,6 +401,7 @@ function Scene() {
   const showTrails = useAnimationStore(state => state.showTrails)
   
   const landscapeMeshRef = useRef<THREE.Mesh>(null)
+  const orbitControlsRef = useRef<any>(null)
   
   const landscapeData = useMemo(() => {
     return generateManifoldLandscape(
@@ -372,11 +452,15 @@ function Scene() {
       
       {/* Camera controls */}
       <OrbitControls 
+        ref={orbitControlsRef}
         enableDamping 
         dampingFactor={0.05}
         minDistance={5}
         maxDistance={50}
       />
+      
+      {/* Keyboard controls for WASD movement */}
+      <KeyboardControls orbitControlsRef={orbitControlsRef} />
       
       {/* Animation controller */}
       <AnimationController />

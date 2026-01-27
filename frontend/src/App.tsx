@@ -3,6 +3,7 @@ import { ManifoldCard } from './components/cards/ManifoldCard'
 import { ManifoldParamsCard } from './components/cards/ManifoldParamsCard'
 import { AnimationCard } from './components/cards/AnimationCard'
 import { OptimizersCard } from './components/cards/OptimizersCard'
+import { OptimizerLegend } from './components/OptimizerLegend'
 import { SettingsButton } from './components/SettingsButton'
 import { ThemeToggle } from './components/ThemeToggle'
 import { SettingsModal } from './components/SettingsModal'
@@ -21,6 +22,10 @@ function App() {
       {/* Floating cards */}
       <div className={styles.topLeft}>
         <ManifoldCard />
+      </div>
+      
+      <div className={styles.topCenter}>
+        <OptimizerLegend />
       </div>
       
       <div className={styles.topRight}>

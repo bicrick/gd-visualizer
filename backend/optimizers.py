@@ -395,10 +395,11 @@ def wheel_optimizer(loss_func, initial_params, learning_rate, n_iterations,
             
             # Update velocity direction with gyroscopic turn resistance
             # Perpendicular gradient tries to turn the wheel toward it
-            # Gyroscopic stability resists this turn proportional to L * I
-            # Higher L (faster spin) = more resistance = smoother turns
-            # Higher I (more inertia) = more resistance = more stable
-            gyro_resistance = L * I + eps
+            # Resistance has two components:
+            #   1. Baseline from I (inertia resists rotation even when stationary)
+            #   2. Gyroscopic boost from L (spinning adds stability)
+            # Formula: I * (1 + L) = I + I*L
+            gyro_resistance = I * (1 + L) + eps
             direction_change = g_perp / gyro_resistance
             direction_change_mag = np.linalg.norm(direction_change)
             v_hat_new = v_hat + direction_change
@@ -413,7 +414,7 @@ def wheel_optimizer(loss_func, initial_params, learning_rate, n_iterations,
             # Debug gyroscopic resistance
             if i < 3 or i % 20 == 0:
                 g_perp_mag_val = np.linalg.norm(g_perp)
-                gyro_resistance_val = L * I + eps
+                gyro_resistance_val = I * (1 + L) + eps
                 print(f"    g_parallel={g_parallel_mag:.4f}, g_perp_mag={g_perp_mag_val:.4f}")
                 print(f"    L: {L_old:.4f} -> {L:.4f}, gyro_resistance={gyro_resistance_val:.4f}, dir_change_mag={direction_change_mag:.4f}")
         else:

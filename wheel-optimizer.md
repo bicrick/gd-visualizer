@@ -35,7 +35,7 @@ When the wheel is spinning fast (high L), it maintains its direction despite sid
 2. Decompose g into parallel (along v) and perpendicular (across v) components
 3. Parallel component adds to angular momentum L (speeds up or slows the spin)
 4. Perpendicular component tries to turn the wheel **toward** the gradient direction
-5. Turning is **resisted** by gyroscopic stability proportional to L × I
+5. Turning is **resisted** by I × (1 + L): baseline inertia plus gyroscopic boost
 6. Higher L or I means stronger resistance, smoother curves
 7. New speed is determined by L through the rolling constraint: `speed = L / I`
 8. Update parameters
@@ -116,9 +116,9 @@ class WheelOptimizer:
             self.L = max(self.L, 0.0)  # L is non-negative; if it hits 0, we've stopped
             
             # Update velocity direction with gyroscopic turn resistance
-            # Perpendicular gradient tries to turn the wheel toward it
-            # Gyroscopic stability resists proportional to L * I
-            gyro_resistance = self.L * self.I + self.eps
+            # Resistance = I * (1 + L): baseline inertia + gyroscopic boost
+            # Even when stationary (L=0), inertia I still resists rotation
+            gyro_resistance = self.I * (1 + self.L) + self.eps
             direction_change = g_perp / gyro_resistance
             v_hat_new = v_hat + direction_change
             v_hat_new = v_hat_new / (np.linalg.norm(v_hat_new) + self.eps)
@@ -236,9 +236,9 @@ class WheelOptimizer(Optimizer):
                 L = torch.clamp(L, min=0.0)
                 
                 # Update direction with gyroscopic turn resistance
-                # Perpendicular gradient tries to turn the wheel toward it
-                # Gyroscopic stability resists proportional to L * I
-                gyro_resistance = L * I + eps
+                # Resistance = I * (1 + L): baseline inertia + gyroscopic boost
+                # Even when stationary (L=0), inertia I still resists rotation
+                gyro_resistance = I * (1 + L) + eps
                 direction_change = g_perp / gyro_resistance
                 v_hat_new = v_hat + direction_change
                 v_hat_new = v_hat_new / (torch.linalg.norm(v_hat_new) + eps)
@@ -327,9 +327,10 @@ g_⊥ = g - g_∥
 L_t = β L_{t-1} + (g · v̂)
 
 # Gyroscopic turn resistance
-# Perpendicular gradient tries to turn wheel toward it
-# Resistance proportional to L × I
-gyro_resistance = L_t × I
+# Resistance = I × (1 + L_t)
+#   - Baseline I: inertia resists rotation even when stationary
+#   - Boost I × L_t: gyroscopic stability when spinning
+gyro_resistance = I × (1 + L_t)
 direction_change = g_⊥ / gyro_resistance
 
 # Update velocity direction
@@ -342,4 +343,4 @@ v̂_new = normalize(v̂ + direction_change)
 θ_t = θ_{t-1} - lr · v_new
 ```
 
-Key insight: As L decreases (momentum decay), gyroscopic resistance decreases, allowing sharper turns. This creates the characteristic spiral trajectory that tightens as the wheel settles, like a coin spinning down a funnel.
+Key insight: As L decreases (momentum decay), gyroscopic resistance decreases from I × (1 + L) toward the baseline I, allowing sharper turns. However, the wheel never becomes infinitely turnable - the moment of inertia I always provides baseline resistance. This creates the characteristic spiral trajectory that tightens as the wheel settles, like a coin spinning down a funnel.

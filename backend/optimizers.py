@@ -418,16 +418,21 @@ def wheel_optimizer(loss_func, initial_params, learning_rate, n_iterations,
                 print(f"    g_parallel={g_parallel_mag:.4f}, g_perp_mag={g_perp_mag_val:.4f}")
                 print(f"    L: {L_old:.4f} -> {L:.4f}, gyro_resistance={gyro_resistance_val:.4f}, dir_change_mag={direction_change_mag:.4f}")
         else:
-            # Cold start: wheel is stationary
-            # Gradient gets it rolling in the gradient direction
+            # Cold start: apply gradient as initial push
+            # The wheel starts rolling from rest with a gentle push
             g_mag = np.linalg.norm(grad)
             
             if g_mag > eps:
-                L = g_mag
-                speed_new = L / I
-                v_hat_new = grad / g_mag
-                v = speed_new * v_hat_new
+                # Initial velocity from gradient, scaled by learning_rate
+                # This matches standard GD behavior and keeps initial speed reasonable
+                v = learning_rate * grad
+                
+                # L follows from rolling constraint: L = I * speed
+                # This keeps L and speed coupled via the physics model
+                L = I * np.linalg.norm(v)
+                
                 if i < 3:
+                    speed_new = np.linalg.norm(v)
                     print(f"    Cold start: g_mag={g_mag:.4f}, initial L={L:.4f}, speed={speed_new:.4f}")
         
         # Update parameters

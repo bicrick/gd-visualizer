@@ -1,0 +1,31 @@
+# CIFAR-10 Dataset
+data/
+
+# Model checkpoints
+checkpoints/
+
+# TensorBoard logs
+runs/
+
+# Evaluation results
+results/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

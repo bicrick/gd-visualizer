@@ -1,0 +1,19 @@
+name: cifar10-opt
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - pytorch::pytorch>=2.0.0
+  - pytorch::torchvision
+  - numpy
+  - matplotlib
+  - scikit-learn
+  - tqdm
+  - tensorboard
+  - jpeg
+  - libpng
+  - pip
+  - pip:
+    - seaborn

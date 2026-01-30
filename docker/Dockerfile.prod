@@ -8,6 +8,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy ONLY backend code (no frontend)
 COPY backend/*.py ./backend/
+COPY backend/optimizers/ ./backend/optimizers/
 
 # Set working directory to backend for imports
 WORKDIR /app/backend

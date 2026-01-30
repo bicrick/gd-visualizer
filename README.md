@@ -1,8 +1,10 @@
 # GD Visualizer
 
-![Gradient Descent Visualization](GD.png)
+![Gradient Descent Visualization](images/GD.png)
 
 A 3D visualization tool for understanding how different optimizers navigate loss landscapes. Watch multiple optimizers race down the same terrain and see why they end up in different places.
+
+![UI Screenshot](images/UI.png)
 
 ## What It Does
 
@@ -18,8 +20,15 @@ Renders parametrizable 3D loss landscapes and simulates gradient descent optimiz
 
 ## Loss Landscapes
 
-- **Gaussian Wells**: Adjustable depth, width, and number of local minima
-- **Ackley Function**: Highly corrugated surface with deep central minimum
+### Gaussian Wells
+Adjustable depth, width, and number of local minima
+
+![Gaussian Wells](images/gaussian-well.png)
+
+### Ackley Function
+Highly corrugated surface with deep central minimum
+
+![Ackley Function](images/ackley.png)
 
 ## Local Development
 

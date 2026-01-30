@@ -338,8 +338,23 @@ function KeyboardControls({ orbitControlsRef }: KeyboardControlsProps) {
       
       // Log camera view parameters when 'V' is pressed
       if (key === 'v' && orbitControlsRef.current) {
-        // Debug view parameters (press 'v' to log)
         event.preventDefault()
+        const cameraData = {
+          position: {
+            x: camera.position.x,
+            y: camera.position.y,
+            z: camera.position.z,
+          },
+          target: {
+            x: orbitControlsRef.current.target.x,
+            y: orbitControlsRef.current.target.y,
+            z: orbitControlsRef.current.target.z,
+          },
+          fov: camera.fov,
+          timestamp: new Date().toISOString(),
+        }
+        console.log('Camera View Parameters:', cameraData)
+        console.log('Copy this for initial params:', JSON.stringify(cameraData))
         return
       }
       
@@ -410,7 +425,11 @@ function KeyboardControls({ orbitControlsRef }: KeyboardControlsProps) {
   return null
 }
 
-function Scene() {
+interface SceneProps {
+  cameraTarget: [number, number, number]
+}
+
+function Scene({ cameraTarget }: SceneProps) {
   const theme = useUIStore(state => state.theme)
   const currentManifoldId = useSceneStore(state => state.currentManifoldId)
   const manifoldParams = useSceneStore(state => state.manifoldParams)
@@ -483,6 +502,7 @@ function Scene() {
       {/* Camera controls */}
       <OrbitControls 
         ref={orbitControlsRef}
+        target={cameraTarget}
         enableDamping 
         dampingFactor={0.05}
         minDistance={5}
@@ -498,18 +518,37 @@ function Scene() {
   )
 }
 
-export function Canvas3D() {
+// Camera configurations
+const DESKTOP_CAMERA = {
+  position: [-4.10, 7.54, -8.44] as [number, number, number],
+  target: [0, 0, 0] as [number, number, number],
+  fov: 60,
+}
+
+const MOBILE_CAMERA = {
+  position: [-16.78683426835478, 18.85000740374781, -16.18529407693264] as [number, number, number],
+  target: [0.3344133140346723, 0, 0.24277936987569657] as [number, number, number],
+  fov: 60,
+}
+
+interface Canvas3DProps {
+  isMobile: boolean
+}
+
+export function Canvas3D({ isMobile }: Canvas3DProps) {
   const pickingMode = useUIStore(state => state.pickingMode)
+  
+  const cameraConfig = isMobile ? MOBILE_CAMERA : DESKTOP_CAMERA
   
   return (
     <div 
       className={`${styles.canvasContainer} ${pickingMode ? styles.pickingMode : ''}`}
     >
       <Canvas
-        camera={{ position: [-4.10, 7.54, -8.44], fov: 60 }}
+        camera={{ position: cameraConfig.position, fov: cameraConfig.fov }}
         gl={{ antialias: true }}
       >
-        <Scene />
+        <Scene cameraTarget={cameraConfig.target} />
       </Canvas>
     </div>
   )

@@ -131,6 +131,79 @@
   letter-spacing: 0.5px;
 }
 
+/* Animation Controls */
+.animationIconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+}
+
+.animationButtonWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.playButtonWrapper {
+  background: linear-gradient(135deg, var(--gradient-primary-start, #4a9eff) 0%, var(--gradient-primary-end, #3a7edf) 100%);
+  box-shadow: 0 4px 12px rgba(74, 158, 255, 0.3);
+}
+
+.pickButtonWrapper {
+  border: 2px solid var(--border-primary, rgba(255, 255, 255, 0.2));
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.animationIcon {
+  width: 28px;
+  height: 28px;
+  color: white;
+}
+
+.playButtonWrapper .animationIcon {
+  color: white;
+}
+
+.pickButtonWrapper .animationIcon {
+  color: var(--text-primary, #ffffff);
+}
+
+/* Simplified Controls (Mobile) */
+.simpleControlGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.simpleControlItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+}
+
+.gesture {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, #ffffff);
+  min-width: 140px;
+}
+
+.simpleDescription {
+  color: var(--text-secondary, #b0b0b0);
+  font-size: 14px;
+  line-height: 1.4;
+  flex: 1;
+}
+
 /* Action Buttons - Circular style matching animation controls */
 .actionButton {
   width: 48px;
@@ -219,6 +292,13 @@
   color: #b0b0b0;
 }
 
+[data-theme="dark"] .animationIcon {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .pickButtonWrapper {
+  border-color: rgba(255, 255, 255, 0.2);
+}
 
 [data-theme="dark"] .button {
   background: #2a2a2a;
@@ -268,6 +348,18 @@
   color: #666666;
 }
 
+[data-theme="light"] .animationIcon {
+  color: #1a1a1a;
+}
+
+[data-theme="light"] .pickButtonWrapper {
+  border-color: rgba(0, 0, 0, 0.15);
+  background: rgba(0, 0, 0, 0.03);
+}
+
+[data-theme="light"] .pickButtonWrapper .animationIcon {
+  color: #1a1a1a;
+}
 
 [data-theme="light"] .button {
   background: #f5f5f5;

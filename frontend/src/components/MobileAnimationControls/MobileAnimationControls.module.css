@@ -1,0 +1,118 @@
+.controls {
+  position: fixed;
+  bottom: calc(60px + env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--overlay-panel);
+  border: 1px solid var(--border-primary);
+  border-radius: 24px;
+  padding: 8px 16px;
+  z-index: 190;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px var(--shadow-heavy);
+}
+
+.playBtn {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gradient-primary-start), var(--gradient-primary-end));
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 2px 8px rgba(74, 158, 255, 0.3);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.playBtn:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(74, 158, 255, 0.4);
+}
+
+.playBtn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.playBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.playBtn.playing {
+  background: linear-gradient(135deg, var(--gradient-secondary-start), var(--gradient-secondary-end));
+  box-shadow: 0 2px 8px var(--shadow-medium);
+}
+
+.playBtn svg {
+  width: 22px;
+  height: 22px;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.status {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  font-family: 'SF Mono', SFMono-Regular, ui-monospace, 'Monaco', 'Menlo', monospace;
+  min-width: 60px;
+  text-align: center;
+}
+
+.pickBtn {
+  width: 36px;
+  height: 36px;
+  padding: 6px;
+  border: 1px solid var(--border-primary);
+  border-radius: 50%;
+  background: var(--bg-button);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pickBtn:hover:not(:disabled) {
+  background: var(--bg-button-hover);
+  color: var(--text-primary);
+}
+
+.pickBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pickBtn.active {
+  background: rgba(74, 158, 255, 0.15);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.pickBtn svg {
+  width: 100%;
+  height: 100%;
+}

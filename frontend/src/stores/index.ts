@@ -5,3 +5,4 @@ export { useUIStore } from './uiStore'
 
 export type { Manifold, ManifoldParameter } from './sceneStore'
 export type { OptimizerParams, MomentumParams, AdamParams, SgdParams } from './optimizerStore'
+export type { MobilePanel } from './uiStore'

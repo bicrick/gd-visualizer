@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 
 type Theme = 'dark' | 'light'
+export type MobilePanel = 'manifold' | 'params' | 'optimizers' | null
 
 interface UIState {
   // Theme
@@ -13,6 +14,9 @@ interface UIState {
   // Picking mode for start position
   pickingMode: boolean
   
+  // Mobile state
+  activeMobilePanel: MobilePanel
+  
   // Actions
   setTheme: (theme: Theme) => void
   toggleTheme: () => void
@@ -20,6 +24,7 @@ interface UIState {
   closeSettingsModal: () => void
   closeGettingStartedModal: () => void
   setPickingMode: (enabled: boolean) => void
+  setActiveMobilePanel: (panel: MobilePanel) => void
 }
 
 export const useUIStore = create<UIState>((set, get) => ({
@@ -28,6 +33,7 @@ export const useUIStore = create<UIState>((set, get) => ({
   settingsModalOpen: false,
   gettingStartedModalOpen: true,
   pickingMode: false,
+  activeMobilePanel: null,
   
   // Actions
   setTheme: (theme) => {
@@ -47,4 +53,5 @@ export const useUIStore = create<UIState>((set, get) => ({
   closeSettingsModal: () => set({ settingsModalOpen: false }),
   closeGettingStartedModal: () => set({ gettingStartedModalOpen: false }),
   setPickingMode: (enabled) => set({ pickingMode: enabled }),
+  setActiveMobilePanel: (panel) => set({ activeMobilePanel: panel }),
 }))

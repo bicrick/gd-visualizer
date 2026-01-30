@@ -1,0 +1,93 @@
+.floatingControls {
+  position: fixed;
+  bottom: calc(78px + env(safe-area-inset-bottom));
+  left: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 170;
+}
+
+.playBtn {
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gradient-primary-start), var(--gradient-primary-end));
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.playBtn:hover:not(:disabled) {
+  transform: scale(1.05);
+}
+
+.playBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.playBtn.playing {
+  background: linear-gradient(135deg, var(--gradient-secondary-start), var(--gradient-secondary-end));
+}
+
+.playBtn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.pickBtn {
+  width: 44px;
+  height: 44px;
+  padding: 10px;
+  border: 1px solid var(--border-primary);
+  border-radius: 50%;
+  background: var(--overlay-panel);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+  backdrop-filter: blur(10px);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.pickBtn:hover:not(:disabled) {
+  background: var(--bg-button-hover);
+  color: var(--text-primary);
+  transform: scale(1.05);
+}
+
+.pickBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pickBtn.active {
+  background: rgba(74, 158, 255, 0.15);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.pickBtn svg {
+  width: 100%;
+  height: 100%;
+}

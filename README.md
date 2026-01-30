@@ -1,4 +1,4 @@
-# Gradient Descent Experiments
+# gradient descent visualizer
 
 ![Gradient Descent Visualization](GD.png)
 

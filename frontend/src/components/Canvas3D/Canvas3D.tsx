@@ -339,6 +339,7 @@ function KeyboardControls({ orbitControlsRef }: KeyboardControlsProps) {
       // Log camera view parameters when 'V' is pressed
       if (key === 'v' && orbitControlsRef.current) {
         event.preventDefault()
+        const fov = (camera as THREE.PerspectiveCamera).fov ?? 60
         const cameraData = {
           position: {
             x: camera.position.x,
@@ -350,7 +351,7 @@ function KeyboardControls({ orbitControlsRef }: KeyboardControlsProps) {
             y: orbitControlsRef.current.target.y,
             z: orbitControlsRef.current.target.z,
           },
-          fov: camera.fov,
+          fov: fov,
           timestamp: new Date().toISOString(),
         }
         console.log('Camera View Parameters:', cameraData)

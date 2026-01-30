@@ -86,7 +86,25 @@ export const useSceneStore = create<SceneState>((set, get) => ({
   isComputing: false,
   
   // Actions
-  setManifolds: (manifolds) => set({ manifolds }),
+  setManifolds: (manifolds) => {
+    const currentId = get().currentManifoldId
+    const currentManifold = manifolds.find(m => m.id === currentId)
+    
+    // Initialize parameters for the current manifold if not already set
+    if (currentManifold && Object.keys(get().manifoldParams).length === 0) {
+      const params: Record<string, number> = {}
+      currentManifold.parameters?.forEach(p => {
+        params[p.name] = p.default
+      })
+      set({ 
+        manifolds, 
+        manifoldParams: params,
+        manifoldRange: currentManifold.default_range 
+      })
+    } else {
+      set({ manifolds })
+    }
+  },
   
   setCurrentManifold: (id) => {
     const manifold = get().manifolds.find(m => m.id === id)

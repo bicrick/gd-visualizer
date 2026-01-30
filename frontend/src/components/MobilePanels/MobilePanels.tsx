@@ -19,7 +19,7 @@ function ManifoldPanelContent() {
         .then(data => {
           setManifolds(data.manifolds)
         })
-        .catch(err => {
+        .catch(_err => {
           // Error handling
         })
     }
@@ -52,6 +52,20 @@ function ParamsPanelContent() {
   const currentManifoldId = useSceneStore(state => state.currentManifoldId)
   const manifoldParams = useSceneStore(state => state.manifoldParams)
   const setManifoldParam = useSceneStore(state => state.setManifoldParam)
+  const setManifolds = useSceneStore(state => state.setManifolds)
+
+  // Fetch manifolds if not loaded yet
+  useEffect(() => {
+    if (manifolds.length === 0) {
+      fetchManifolds()
+        .then(data => {
+          setManifolds(data.manifolds)
+        })
+        .catch(_err => {
+          // Error handling
+        })
+    }
+  }, [manifolds.length, setManifolds])
 
   const currentManifold = manifolds.find(m => m.id === currentManifoldId)
   const parameters = currentManifold?.parameters || []

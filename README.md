@@ -4,8 +4,6 @@
 
 A 3D visualization tool for understanding how different optimizers navigate loss landscapes. Watch multiple optimizers race down the same terrain and see why they end up in different places.
 
-![UI Screenshot](images/UI.png)
-
 ## What It Does
 
 Renders parametrizable 3D loss landscapes and simulates gradient descent optimizers in real-time. Instead of running on actual ML models, this lets you test optimizer behavior on controlled topologies where you can see the entire terrain.

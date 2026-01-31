@@ -27,11 +27,18 @@ interface UIState {
   setActiveMobilePanel: (panel: MobilePanel) => void
 }
 
+// Check URL parameters to determine if tutorial should be skipped
+const checkSkipTutorial = (): boolean => {
+  if (typeof window === 'undefined') return false
+  const params = new URLSearchParams(window.location.search)
+  return params.get('skipTutorial') === 'true'
+}
+
 export const useUIStore = create<UIState>((set, get) => ({
   // Initial state - read from localStorage
   theme: (localStorage.getItem('theme') as Theme) || 'dark',
   settingsModalOpen: false,
-  gettingStartedModalOpen: true,
+  gettingStartedModalOpen: !checkSkipTutorial(),
   pickingMode: false,
   activeMobilePanel: null,
   
